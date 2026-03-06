@@ -74,7 +74,7 @@ export default async function SharePage({
           <div className="win95-sunken p-3 text-sm">
             You&apos;re already{' '}
             <strong>{formatDollars(idea.submitter_pledge_amount)}</strong> toward the goal.
-            Your pledge is held — never charged unless funding completes within 120 days.
+            Your pledge is held — never charged unless funding completes within 7 days.
           </div>
         </div>
       </div>

@@ -164,7 +164,7 @@ export function PledgeBox({
         <div className="font-vt323 text-2xl" style={{ color: '#004000' }}>✓ Pledge received!</div>
         <p style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12 }}>
           Your card is <strong>authorized but not charged</strong> until the funding goal is hit.
-          You&apos;ll get an email when this app is funded. 100% refunded if not funded in 120 days.
+          You&apos;ll get an email when this app is funded. 100% refunded if not funded in 7 days.
         </p>
       </div>
     )
@@ -179,7 +179,7 @@ export function PledgeBox({
         <div className="p-3 space-y-3">
           <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
             Your card is <strong>authorized only</strong> — never charged until the funding goal
-            is hit. 100% refunded if not funded in 120 days.
+            is hit. 100% refunded if not funded in 7 days.
           </p>
 
           {/* Tier cards — hide once we have a clientSecret */}

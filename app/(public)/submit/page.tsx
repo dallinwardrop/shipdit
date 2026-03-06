@@ -164,7 +164,7 @@ export default function SubmitPage() {
           </h1>
           <p className="text-xs mb-4" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
             Your idea enters a review queue. Once approved and priced, it goes live for community
-            funding. Your pledge is held — never charged unless the goal is hit within 120 days.
+            funding. Your pledge is held — never charged unless the goal is hit within 7 days.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -345,7 +345,7 @@ export default function SubmitPage() {
                   </p>
                   <p>Basic apps (2–3 features) typically start at $1,000.</p>
                   <p>
-                    Your pledge is 100% refunded if the app doesn&apos;t reach its goal within 120 days.
+                    Your pledge is 100% refunded if the app doesn&apos;t reach its goal within 7 days.
                     You are <strong>never charged until the goal is hit.</strong>
                   </p>
                 </div>
@@ -385,7 +385,7 @@ export default function SubmitPage() {
         <div className="p-3 text-xs space-y-1" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
           <p>✓ Your card is authorized (held) — not charged — when you submit.</p>
           <p>✓ Funds are only captured when the full goal is reached.</p>
-          <p>✓ If the goal isn&apos;t hit within 120 days, your hold is fully released.</p>
+          <p>✓ If the goal isn&apos;t hit within 7 days, your hold is fully released.</p>
           <p>✓ Once built, the app is free for the entire community forever.</p>
         </div>
       </div>
