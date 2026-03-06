@@ -64,9 +64,11 @@ export default async function FundIdeaPage({
   const features = (idea.features ?? []) as FeatureItem[]
   const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live']
   const isPledgeOpen = PLEDGE_OPEN.includes(idea.status)
+  const PRE_LIVE = ['submitted', 'under_review', 'awaiting_price']
+  const isPreLive = PRE_LIVE.includes(idea.status)
   const appLabel = idea.app_number
-    ? `#${String(idea.app_number).padStart(3, '0')}`
-    : 'Pending'
+    ? `App #${String(idea.app_number).padStart(3, '0')}`
+    : null
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -78,12 +80,21 @@ export default async function FundIdeaPage({
           {/* Header */}
           <div className="win95-window">
             <div className="win95-title-bar">
-              <span className="font-vt323 text-xl truncate">App {appLabel}</span>
+              <span className="font-vt323 text-xl truncate">{idea.title}</span>
             </div>
             <div className="p-4 space-y-4">
-              <h1 className="font-vt323 text-5xl leading-tight" style={{ color: '#000080' }}>
-                App {appLabel}
-              </h1>
+              <div>
+                <h1 className="font-vt323 text-5xl leading-tight" style={{ color: '#000080' }}>
+                  {idea.title}
+                </h1>
+                {appLabel ? (
+                  <div className="font-vt323 text-2xl" style={{ color: '#404040' }}>{appLabel}</div>
+                ) : isPreLive ? (
+                  <div className="text-xs mt-1" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+                    working title
+                  </div>
+                ) : null}
+              </div>
 
               {/* Meta */}
               <div className="win95-sunken p-2 flex flex-wrap gap-4 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>

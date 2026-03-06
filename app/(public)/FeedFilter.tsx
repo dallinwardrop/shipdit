@@ -41,9 +41,11 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
   const days = daysUntil(idea.funding_deadline)
   const isExpiringSoon = days !== null && days <= 14 && days >= 0
   const badge = STATUS_BADGE[idea.status]
+  const PRE_LIVE = ['submitted', 'under_review', 'awaiting_price']
+  const isPreLive = PRE_LIVE.includes(idea.status)
   const appLabel = idea.app_number
     ? `App #${String(idea.app_number).padStart(3, '0')}`
-    : 'Pending'
+    : null
 
   return (
     <Link href={`/fund/${idea.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -51,7 +53,7 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 
         {/* Title bar */}
         <div className="win95-title-bar">
-          <span className="font-vt323 text-lg truncate flex-1">{appLabel}</span>
+          <span className="font-vt323 text-lg truncate flex-1">{idea.title}</span>
           {badge && (
             <span
               className="text-xs flex-shrink-0 mx-1 px-1"
@@ -77,6 +79,14 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 
         {/* Body */}
         <div className="p-3 space-y-2">
+          {/* App number or working title label */}
+          {appLabel ? (
+            <div className="font-vt323 text-lg" style={{ color: '#000080' }}>{appLabel}</div>
+          ) : isPreLive ? (
+            <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+              working title
+            </div>
+          ) : null}
           <p className="text-sm leading-snug" style={{ color: '#000' }}>
             {truncate(idea.goal_description, 100)}
           </p>
