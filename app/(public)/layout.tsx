@@ -29,6 +29,9 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           <Link href="/donors" className="win95-btn text-xs">
             Donors
           </Link>
+          <Link href="/faq" className="win95-btn text-xs">
+            FAQ
+          </Link>
         </div>
         <div className="ml-auto">
           <NavAuth />

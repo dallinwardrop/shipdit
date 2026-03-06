@@ -349,6 +349,19 @@ export function AdminDashboard({
                             🚀 GO LIVE
                           </button>
                         )}
+
+                        {/* DELETE — all statuses */}
+                        <button
+                          onClick={() => {
+                            if (confirm('Delete this idea and cancel all pledges? This cannot be undone.')) {
+                              act('/api/admin/delete', { idea_id: idea.id }, idea.id)
+                            }
+                          }}
+                          disabled={isLoading}
+                          style={{ ...btnDanger, width: '100%', marginTop: 4, borderTop: '1px solid #c08080' }}
+                        >
+                          DELETE
+                        </button>
                       </div>
                     )
                   })}
