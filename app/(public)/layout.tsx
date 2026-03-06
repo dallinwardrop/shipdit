@@ -24,7 +24,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
             Submit Idea
           </Link>
           <Link href="/directory" className="win95-btn text-xs">
-            Shipped
+            Shipd
           </Link>
           <Link href="/donors" className="win95-btn text-xs">
             Donors

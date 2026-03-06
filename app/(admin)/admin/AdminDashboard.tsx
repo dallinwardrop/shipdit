@@ -604,12 +604,12 @@ export function AdminDashboard({
   const hostingPanel = (
     <div className="win95-window" style={{ flex: 1, minWidth: 0 }}>
       <div className="win95-title-bar">
-        <span className="font-vt323 text-base">Hosting — Shipped Apps ({shippedIdeas.length})</span>
+        <span className="font-vt323 text-base">Hosting — Shipd Apps ({shippedIdeas.length})</span>
       </div>
       <div style={{ overflowX: 'auto' }}>
         {shippedIdeas.length === 0 ? (
           <p className="p-4 text-xs text-center" style={{ opacity: 0.4, fontFamily: 'Share Tech Mono, monospace' }}>
-            No shipped apps yet.
+            No shipd apps yet.
           </p>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Share Tech Mono, monospace', fontSize: 11 }}>

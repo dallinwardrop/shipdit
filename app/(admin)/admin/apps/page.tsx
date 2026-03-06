@@ -60,7 +60,7 @@ export default async function AppsPage() {
               <p>Funded: {new Date(idea.funded_at).toLocaleDateString('en-US')}</p>
             )}
             {idea.built_at && (
-              <p>Shipped: {new Date(idea.built_at).toLocaleDateString('en-US')}</p>
+              <p>Shipd: {new Date(idea.built_at).toLocaleDateString('en-US')}</p>
             )}
           </div>
         </div>

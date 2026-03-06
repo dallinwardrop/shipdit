@@ -19,7 +19,7 @@ const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }>
   funded:         { label: 'FUNDED',             color: '#000060', bg: '#c0c8ff' },
   building:       { label: 'BEING BUILT',        color: '#000060', bg: '#c0c8ff' },
   in_review:      { label: 'BEING BUILT',        color: '#000060', bg: '#c0c8ff' },
-  built:          { label: 'SHIPPED',            color: '#300060', bg: '#e8c0ff' },
+  built:          { label: 'SHIPD',              color: '#300060', bg: '#e8c0ff' },
 }
 
 // ── Filter definitions ────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ const FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = 
   { key: 'pending', label: 'Pending Review',     statuses: ['submitted', 'under_review', 'awaiting_price'] },
   { key: 'pledges', label: 'Accepting Pledges',  statuses: ['priced', 'live'] },
   { key: 'funded',  label: 'Funded',             statuses: ['funded', 'building', 'in_review'] },
-  { key: 'built',   label: 'Shipped',             statuses: ['built'] },
+  { key: 'built',   label: 'Shipd',               statuses: ['built'] },
 ]
 
 // ── Card ──────────────────────────────────────────────────────────────────────

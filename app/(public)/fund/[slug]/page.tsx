@@ -218,7 +218,7 @@ export default async function FundIdeaPage({
                 {idea.status === 'funded'   && '✓ Fully funded! Build starting soon.'}
                 {idea.status === 'building' && '🔨 Build in progress.'}
                 {idea.status === 'in_review' && '🔍 Build complete — in final review.'}
-                {idea.status === 'built'    && '🚀 Shipped! This app is live for everyone.'}
+                {idea.status === 'built'    && '🚀 Shipd! This app is live for everyone.'}
                 {idea.demo_url && (
                   <a href={idea.demo_url} target="_blank" rel="noopener noreferrer" className="win95-btn inline-block mt-2 text-xs">
                     View Demo →

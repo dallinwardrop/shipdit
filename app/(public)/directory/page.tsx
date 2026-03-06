@@ -16,14 +16,14 @@ export default async function DirectoryPage() {
     <div className="max-w-5xl mx-auto space-y-4">
       <div className="win95-window">
         <div className="win95-title-bar">
-          <span className="font-vt323 text-xl">Shipped Apps</span>
+          <span className="font-vt323 text-xl">Shipd Apps</span>
         </div>
         <div className="p-4">
           <h1 className="font-vt323 text-5xl" style={{ color: '#000080' }}>
-            SHIPPED APPS
+            SHIPD APPS
           </h1>
           <p className="text-sm mt-1">
-            Community-funded apps that have shipped and are free for everyone.
+            Community-funded apps that have shipd and are free for everyone.
           </p>
         </div>
       </div>
@@ -37,7 +37,7 @@ export default async function DirectoryPage() {
             <p className="font-vt323 text-3xl mb-2" style={{ color: '#000080' }}>
               COMING SOON
             </p>
-            <p className="text-sm">No apps have shipped yet. Fund one to make it happen!</p>
+            <p className="text-sm">No apps have shipd yet. Fund one to make it happen!</p>
           </div>
         </div>
       ) : (
