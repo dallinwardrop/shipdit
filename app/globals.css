@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+/* Win95 / Shipdit theme */
+:root {
+  --win95-bg: #008080;
+  --win95-gray: #c0c0c0;
+  --win95-dark-gray: #808080;
+  --win95-darker-gray: #404040;
+  --win95-navy: #000080;
+  --win95-white: #ffffff;
+  --win95-black: #000000;
+  --win95-shadow: #dfdfdf;
+  --win95-border-light: #ffffff;
+  --win95-border-dark: #808080;
+  --win95-border-darker: #404040;
+}
+
+@theme inline {
+  --color-win95-bg: var(--win95-bg);
+  --color-win95-gray: var(--win95-gray);
+  --color-win95-navy: var(--win95-navy);
+}
+
+/* Google Fonts loaded via layout.tsx head */
+body {
+  background-color: var(--win95-bg);
+  color: var(--win95-black);
+  font-family: 'Share Tech Mono', 'Courier New', monospace;
+  min-height: 100vh;
+}
+
+/* Win95 beveled border utilities */
+.win95-raised {
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--win95-white) var(--win95-dark-gray) var(--win95-dark-gray) var(--win95-white);
+  background-color: var(--win95-gray);
+}
+
+.win95-sunken {
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--win95-dark-gray) var(--win95-white) var(--win95-white) var(--win95-dark-gray);
+  background-color: var(--win95-white);
+}
+
+.win95-window {
+  background-color: var(--win95-gray);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--win95-white) var(--win95-darker-gray) var(--win95-darker-gray) var(--win95-white);
+  box-shadow: 2px 2px 0px var(--win95-black);
+}
+
+.win95-title-bar {
+  background-color: var(--win95-navy);
+  color: var(--win95-white);
+  padding: 4px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  user-select: none;
+}
+
+.win95-btn {
+  background-color: var(--win95-gray);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--win95-white) var(--win95-dark-gray) var(--win95-dark-gray) var(--win95-white);
+  padding: 4px 12px;
+  cursor: pointer;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.875rem;
+  min-width: 75px;
+  text-align: center;
+}
+
+.win95-btn:active {
+  border-color: var(--win95-dark-gray) var(--win95-white) var(--win95-white) var(--win95-dark-gray);
+}
+
+.win95-btn-primary {
+  background-color: var(--win95-navy);
+  color: var(--win95-white);
+  border-color: #4040ff var(--win95-darker-gray) var(--win95-darker-gray) #4040ff;
+}
+
+.win95-btn-primary:active {
+  border-color: var(--win95-darker-gray) #4040ff #4040ff var(--win95-darker-gray);
+}
+
+.win95-input {
+  background-color: var(--win95-white);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--win95-dark-gray) var(--win95-white) var(--win95-white) var(--win95-dark-gray);
+  padding: 4px 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.875rem;
+  outline: none;
+  width: 100%;
+}
+
+.win95-select {
+  background-color: var(--win95-white);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--win95-dark-gray) var(--win95-white) var(--win95-white) var(--win95-dark-gray);
+  padding: 4px 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.875rem;
+  outline: none;
+  width: 100%;
+  cursor: pointer;
+}
+
+.win95-textarea {
+  background-color: var(--win95-white);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--win95-dark-gray) var(--win95-white) var(--win95-white) var(--win95-dark-gray);
+  padding: 4px 6px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 0.875rem;
+  outline: none;
+  width: 100%;
+  resize: vertical;
+}
+
+.win95-progress-track {
+  background-color: var(--win95-white);
+  border-style: solid;
+  border-width: 2px;
+  border-color: var(--win95-dark-gray) var(--win95-white) var(--win95-white) var(--win95-dark-gray);
+  height: 20px;
+  position: relative;
+  overflow: hidden;
+}
+
+.win95-progress-fill {
+  background: repeating-linear-gradient(
+    to right,
+    var(--win95-navy) 0px,
+    var(--win95-navy) 8px,
+    #0000cc 8px,
+    #0000cc 16px
+  );
+  height: 100%;
+  transition: width 0.4s ease;
+}
+
+/* VT323 for headers */
+h1, h2, h3, .font-vt323 {
+  font-family: 'VT323', 'Courier New', monospace;
+}
+
+/* Scrollbar Win95 style */
+::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+}
+::-webkit-scrollbar-track {
+  background: var(--win95-gray);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--win95-gray);
+  border: 2px solid;
+  border-color: var(--win95-white) var(--win95-dark-gray) var(--win95-dark-gray) var(--win95-white);
+}
+::-webkit-scrollbar-button {
+  background: var(--win95-gray);
+  border: 2px solid;
+  border-color: var(--win95-white) var(--win95-dark-gray) var(--win95-dark-gray) var(--win95-white);
+  height: 16px;
+  width: 16px;
+}

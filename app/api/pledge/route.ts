@@ -1,0 +1,125 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
+import { stripe } from '@/lib/stripe'
+import type { PledgeType } from '@/lib/supabase/types'
+
+export async function POST(request: NextRequest) {
+  try {
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+    }
+
+    const admin = createAdminClient()
+    const body = await request.json()
+    const {
+      app_idea_id,
+      amount,
+      type = 'pledge',
+      ref_code,
+    } = body as {
+      app_idea_id: string
+      amount: number
+      type?: PledgeType
+      ref_code?: string
+    }
+
+    if (!app_idea_id) return NextResponse.json({ error: 'app_idea_id required.' }, { status: 400 })
+    if (!amount || amount < 100)
+      return NextResponse.json({ error: 'Minimum pledge is $1.' }, { status: 400 })
+
+    // Verify the idea exists and is open for pledges (use admin to bypass RLS)
+    const { data: idea } = await admin
+      .from('app_ideas')
+      .select('id, title, slug, status')
+      .eq('id', app_idea_id)
+      .single()
+
+    const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live']
+    if (!idea) return NextResponse.json({ error: 'Idea not found.' }, { status: 404 })
+    if (!PLEDGE_OPEN.includes(idea.status))
+      return NextResponse.json({ error: 'This idea is not currently accepting pledges.' }, { status: 400 })
+
+    // Check for existing pledge from this user
+    const { data: existing } = await supabase
+      .from('pledges')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('app_idea_id', app_idea_id)
+      .in('status', ['pending', 'held'])
+      .single()
+
+    if (existing) {
+      return NextResponse.json(
+        { error: 'You already have an active pledge for this idea.' },
+        { status: 409 }
+      )
+    }
+
+    // Get or create Stripe customer
+    const { data: profile } = await admin
+      .from('users')
+      .select('email')
+      .eq('id', user.id)
+      .single()
+
+    let customerId: string | undefined
+
+    const existingCustomers = await stripe.customers.list({ email: profile?.email, limit: 1 })
+    if (existingCustomers.data.length > 0) {
+      customerId = existingCustomers.data[0].id
+    } else if (profile?.email) {
+      const customer = await stripe.customers.create({ email: profile.email })
+      customerId = customer.id
+    }
+
+    // Create Payment Intent with manual capture
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount,
+      currency: 'usd',
+      capture_method: 'manual',
+      payment_method_types: ['card'],
+      customer: customerId,
+      metadata: {
+        user_id: user.id,
+        app_idea_id,
+        type,
+        ref_code: ref_code ?? '',
+      },
+      description: `Pledge for: ${idea.title}`,
+    })
+
+    // Insert pledge record
+    const { error: pledgeError } = await admin.from('pledges').insert({
+      user_id: user.id,
+      app_idea_id,
+      amount,
+      type,
+      status: 'held',
+      stripe_payment_intent_id: paymentIntent.id,
+      stripe_customer_id: customerId ?? null,
+      ref_code: ref_code ?? null,
+      is_submitter_pledge: false,
+    })
+
+    if (pledgeError) {
+      console.error('Pledge insert error:', pledgeError)
+      await stripe.paymentIntents.cancel(paymentIntent.id)
+      return NextResponse.json({ error: 'Failed to record pledge.' }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      success: true,
+      client_secret: paymentIntent.client_secret,
+      payment_intent_id: paymentIntent.id,
+    })
+  } catch (err) {
+    console.error('Pledge route error:', err)
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })
+  }
+}
