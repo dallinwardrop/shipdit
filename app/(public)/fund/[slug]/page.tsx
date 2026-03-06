@@ -117,8 +117,24 @@ export default async function FundIdeaPage({
               {/* Description */}
               <p className="text-sm leading-relaxed">{idea.goal_description}</p>
 
-              {/* Progress */}
-              {idea.build_price ? (
+              {/* Progress / Momentum */}
+              {isPreLive ? (
+                <div className="win95-sunken p-3 space-y-2">
+                  <div className="flex items-baseline gap-3">
+                    <span className="font-vt323 text-4xl" style={{ color: '#000080' }}>
+                      {formatDollars(idea.amount_raised)}
+                    </span>
+                    <span className="text-sm" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                      pledged so far
+                    </span>
+                  </div>
+                  <div className="text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                    {idea.backer_count > 0
+                      ? `${idea.backer_count} ${idea.backer_count === 1 ? 'person is' : 'people are'} already in. Build price will be set within 24hrs of approval — your pledge is held until then.`
+                      : 'Be the first backer. Build price will be set within 24hrs of approval — your pledge is held, never charged unless the goal is hit.'}
+                  </div>
+                </div>
+              ) : idea.build_price ? (
                 <div className="space-y-1">
                   <div className="win95-progress-track">
                     <div className="win95-progress-fill" style={{ width: `${pct}%` }} />
@@ -132,11 +148,7 @@ export default async function FundIdeaPage({
                     </span>
                   </div>
                 </div>
-              ) : (
-                <div className="win95-sunken p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-                  Goal: TBD — price being set by the builder
-                </div>
-              )}
+              ) : null}
 
               {/* Stats */}
               <div className="grid grid-cols-3 gap-2">

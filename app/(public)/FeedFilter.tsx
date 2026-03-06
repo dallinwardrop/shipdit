@@ -102,8 +102,24 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
             {truncate(idea.goal_description, 100)}
           </p>
 
-          {/* Progress */}
-          {idea.build_price ? (
+          {/* Progress / Momentum */}
+          {isPreLive ? (
+            <div className="win95-sunken p-2 space-y-1">
+              <div className="flex items-baseline gap-2">
+                <span className="font-vt323 text-2xl" style={{ color: '#000080' }}>
+                  {formatDollars(idea.amount_raised)}
+                </span>
+                <span className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                  pledged so far
+                </span>
+              </div>
+              <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                {idea.backer_count > 0
+                  ? `${idea.backer_count} ${idea.backer_count === 1 ? 'person' : 'people'} already in — build price coming soon`
+                  : 'Be the first — build price set within 24hrs of approval'}
+              </div>
+            </div>
+          ) : idea.build_price ? (
             <div className="space-y-1">
               <div className="win95-progress-track">
                 <div className="win95-progress-fill" style={{ width: `${pct}%` }} />
