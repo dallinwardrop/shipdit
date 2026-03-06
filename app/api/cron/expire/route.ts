@@ -1,77 +1,76 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { stripe } from '@/lib/stripe'
-import { sendEmail } from '@/lib/resend'
+import { sendRefundIssued } from '@/lib/emails'
 
-// Called nightly by Vercel Cron: GET /api/cron/expire
+export const dynamic = 'force-dynamic'
+
+// Scheduled daily at 00:00 UTC via Vercel Cron (Pro plan) or external cron.
+// External cron alternative (free): https://cron-job.org — hit GET /api/cron/expire
+// with header  Authorization: Bearer <CRON_SECRET>
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
   }
 
   const admin = createAdminClient()
+  const now = new Date().toISOString()
 
-  // Find all live ideas past their funding_deadline
+  // Ideas that are past deadline AND goal not hit
   const { data: expiredIdeas } = await admin
     .from('app_ideas')
-    .select('id, title, slug')
-    .eq('status', 'live')
-    .lt('funding_deadline', new Date().toISOString())
+    .select('id, title, slug, build_price, amount_raised')
+    .in('status', ['live', 'priced'])
+    .lt('funding_deadline', now)
+    .or('build_price.is.null,amount_raised.lt.build_price')
 
   if (!expiredIdeas?.length) {
-    return NextResponse.json({ message: 'No expired ideas.', count: 0 })
+    return NextResponse.json({ expired: 0, refunded: 0, message: 'Nothing to expire.' })
   }
 
   let totalRefunded = 0
 
   for (const idea of expiredIdeas) {
-    // Fetch all held/pending pledges for this idea
     const { data: pledges } = await admin
       .from('pledges')
       .select('id, stripe_payment_intent_id, user_id, amount')
       .eq('app_idea_id', idea.id)
       .in('status', ['held', 'pending'])
 
-    if (pledges) {
-      for (const pledge of pledges) {
-        try {
-          await stripe.paymentIntents.cancel(pledge.stripe_payment_intent_id)
-          await admin
-            .from('pledges')
-            .update({ status: 'refunded', refunded_at: new Date().toISOString() })
-            .eq('id', pledge.id)
-          totalRefunded++
+    if (pledges?.length) {
+      // Collect user emails in one query
+      const userIds = [...new Set(pledges.map((p) => p.user_id))]
+      const { data: users } = await admin
+        .from('users')
+        .select('id, email')
+        .in('id', userIds)
+      const emailMap = Object.fromEntries((users ?? []).map((u) => [u.id, u.email]))
 
-          // Notify user
-          const { data: u } = await admin
-            .from('users')
-            .select('email')
-            .eq('id', pledge.user_id)
-            .single()
+      // Cancel + refund all pledges in parallel
+      await Promise.all(
+        pledges.map(async (pledge) => {
+          try {
+            await stripe.paymentIntents.cancel(pledge.stripe_payment_intent_id)
+            await admin
+              .from('pledges')
+              .update({ status: 'refunded', refunded_at: now })
+              .eq('id', pledge.id)
+            totalRefunded++
 
-          if (u?.email) {
-            await sendEmail({
-              to: u.email,
-              type: 'refund_issued',
-              ideaTitle: idea.title,
-              ideaSlug: idea.slug ?? undefined,
-              refundAmount: pledge.amount,
-            }).catch(console.warn)
+            const email = emailMap[pledge.user_id]
+            if (email) {
+              sendRefundIssued(email, { appTitle: idea.title, amount: pledge.amount }).catch(console.error)
+            }
+          } catch (err) {
+            console.error(`Failed to refund pledge ${pledge.id}:`, err)
           }
-        } catch (err) {
-          console.error(`Failed to refund pledge ${pledge.id}:`, err)
-        }
-      }
+        })
+      )
     }
 
-    // Mark idea as expired
     await admin.from('app_ideas').update({ status: 'expired' }).eq('id', idea.id)
   }
 
-  return NextResponse.json({
-    message: 'Expiry cron complete.',
-    ideas_expired: expiredIdeas.length,
-    pledges_refunded: totalRefunded,
-  })
+  return NextResponse.json({ expired: expiredIdeas.length, refunded: totalRefunded })
 }
