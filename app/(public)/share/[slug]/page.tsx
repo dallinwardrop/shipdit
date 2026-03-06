@@ -17,7 +17,7 @@ export default async function SharePage({
 
   const { data: idea } = await supabase
     .from('app_ideas')
-    .select('id, title, slug, submitter_id, submitter_pledge_amount, referral_code, status')
+    .select('id, title, slug, submitter_id, submitter_pledge_amount, referral_code, status, goal_description')
     .eq('slug', slug)
     .single()
 
@@ -30,15 +30,21 @@ export default async function SharePage({
     redirect(`/fund/${idea.slug}`)
   }
 
-  // Pull referral conversions (friends who backed via the submitter's link)
-  const { data: referral } = await supabase
-    .from('referrals')
-    .select('conversions')
+  // Count backers who came via the submitter's referral link
+  const { count: conversions } = await supabase
+    .from('pledges')
+    .select('id', { count: 'exact', head: true })
+    .eq('app_idea_id', idea.id)
     .eq('ref_code', idea.referral_code ?? '')
-    .single()
-
-  const conversions = referral?.conversions ?? 0
+    .in('status', ['held', 'captured', 'pending'])
+  const refConversions = conversions ?? 0
   const TARGET = 50
+
+  // TikTok script
+  const goalSnippet = (idea.goal_description ?? '').slice(0, 100).trimEnd() +
+    ((idea.goal_description ?? '').length > 100 ? '…' : '')
+  const tiktokScript = `I just submitted an app idea to Shipdit and put real money behind it 💰 If enough people back it, someone actually builds it — and everyone gets it free. Here's my idea: ${goalSnippet}. Back it at shipdit.co 🚀 #shipdit #fundmyapp #buildit`
+  const tiktokCaption = '#shipdit #fundmyapp #buildit #appidea'
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
   const shareUrl = idea.referral_code
@@ -87,7 +93,7 @@ export default async function SharePage({
           <div className="win95-raised p-3 flex items-center gap-4">
             <div>
               <span className="font-vt323 text-5xl" style={{ color: '#000080' }}>
-                {conversions}
+                {refConversions}
               </span>
               <span className="font-vt323 text-2xl" style={{ color: '#404040' }}>
                 {' '}/ {TARGET}
@@ -97,11 +103,11 @@ export default async function SharePage({
               <div className="win95-progress-track">
                 <div
                   className="win95-progress-fill"
-                  style={{ width: `${Math.min(100, Math.round((conversions / TARGET) * 100))}%` }}
+                  style={{ width: `${Math.min(100, Math.round((refConversions / TARGET) * 100))}%` }}
                 />
               </div>
               <p className="text-xs mt-1" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                {conversions} of {TARGET} friends backed it
+                {refConversions} of {TARGET} friends backed it
               </p>
             </div>
           </div>
@@ -167,6 +173,89 @@ export default async function SharePage({
               {shareCopy.twitter}
             </p>
             <CopyButton text={shareCopy.twitter} label="Copy tweet" />
+          </div>
+        </div>
+      </div>
+
+      {/* TikTok promo panel */}
+      <div className="win95-window">
+        <div className="win95-title-bar" style={{ background: '#400080' }}>
+          <span className="font-vt323 text-xl">🎬 Go Viral — Get It Built Faster</span>
+        </div>
+        <div className="p-4 space-y-4">
+          <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+            TikTok is the fastest way to fund your idea. Use this ready-to-go script and post 3–5 times.
+          </p>
+
+          {/* TikTok script */}
+          <div className="space-y-1">
+            <p className="text-xs font-bold" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#400080' }}>
+              🎤 TIKTOK SCRIPT — read this on camera
+            </p>
+            <div className="win95-sunken p-3 text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace', whiteSpace: 'pre-wrap' }}>
+              {tiktokScript}
+            </div>
+            <CopyButton text={tiktokScript} label="Copy Script" />
+          </div>
+
+          {/* Referral link */}
+          <div className="space-y-1">
+            <p className="text-xs font-bold" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#400080' }}>
+              🔗 YOUR REFERRAL LINK — put this in your bio or comments
+            </p>
+            <div className="win95-sunken p-2 flex gap-2 items-center">
+              <code className="text-xs flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+                {shareUrl}
+              </code>
+              <CopyButton text={shareUrl} label="Copy Link" />
+            </div>
+
+            {/* Referral counter */}
+            <div
+              className="win95-raised p-2 flex items-center gap-3"
+              style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12 }}
+            >
+              <span className="font-vt323" style={{ fontSize: 28, color: '#400080' }}>
+                {refConversions}
+              </span>
+              <span>
+                {refConversions === 1 ? 'backer came' : 'backers came'} from your link
+              </span>
+            </div>
+          </div>
+
+          {/* Caption */}
+          <div className="space-y-1">
+            <p className="text-xs font-bold" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#400080' }}>
+              #️⃣ SUGGESTED CAPTION
+            </p>
+            <div className="win95-sunken p-2 flex gap-2 items-center">
+              <code className="text-xs flex-1">{tiktokCaption}</code>
+              <CopyButton text={tiktokCaption} label="Copy" />
+            </div>
+          </div>
+
+          {/* Tips */}
+          <div className="space-y-1">
+            <p className="text-xs font-bold" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#400080' }}>
+              💡 QUICK TIPS
+            </p>
+            <div className="space-y-1">
+              {[
+                'Film yourself explaining the problem your app solves',
+                'Show the pain point — make it relatable',
+                'Post 3-5 times for best reach — each video finds new audiences',
+              ].map((tip, i) => (
+                <div
+                  key={i}
+                  className="win95-raised p-2 text-xs flex gap-2"
+                  style={{ fontFamily: 'Share Tech Mono, monospace' }}
+                >
+                  <span style={{ color: '#400080', flexShrink: 0 }}>{i + 1}.</span>
+                  <span>{tip}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
