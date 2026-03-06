@@ -64,11 +64,14 @@ export default async function FundIdeaPage({
   const features = (idea.features ?? []) as FeatureItem[]
   const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live']
   const isPledgeOpen = PLEDGE_OPEN.includes(idea.status)
-  const PRE_LIVE = ['submitted', 'under_review', 'awaiting_price']
-  const isPreLive = PRE_LIVE.includes(idea.status)
+  const PRE_LIVE    = ['submitted', 'under_review', 'awaiting_price']
+  const LIVE_PRICED = ['live', 'priced']
+  const isPreLive   = PRE_LIVE.includes(idea.status)
+  const isLivePriced = LIVE_PRICED.includes(idea.status)
   const appLabel = idea.app_number
     ? `App #${String(idea.app_number).padStart(3, '0')}`
     : null
+  const titleBarText = (isLivePriced && appLabel) ? appLabel : idea.title
 
   return (
     <div className="max-w-5xl mx-auto">
@@ -80,18 +83,20 @@ export default async function FundIdeaPage({
           {/* Header */}
           <div className="win95-window">
             <div className="win95-title-bar">
-              <span className="font-vt323 text-xl truncate">{idea.title}</span>
+              <span className="font-vt323 text-xl truncate">{titleBarText}</span>
             </div>
             <div className="p-4 space-y-4">
               <div>
                 <h1 className="font-vt323 text-5xl leading-tight" style={{ color: '#000080' }}>
-                  {idea.title}
+                  {titleBarText}
                 </h1>
-                {appLabel ? (
-                  <div className="font-vt323 text-2xl" style={{ color: '#404040' }}>{appLabel}</div>
-                ) : isPreLive ? (
+                {isPreLive ? (
                   <div className="text-xs mt-1" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
-                    working title
+                    {idea.title} <span style={{ opacity: 0.7 }}>(working title)</span>
+                  </div>
+                ) : (isLivePriced && appLabel) ? (
+                  <div className="text-xs mt-1" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+                    {idea.title} <span style={{ opacity: 0.7 }}>(working title)</span>
                   </div>
                 ) : null}
               </div>

@@ -19,7 +19,7 @@ const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }>
   funded:         { label: 'FUNDED',             color: '#000060', bg: '#c0c8ff' },
   building:       { label: 'BEING BUILT',        color: '#000060', bg: '#c0c8ff' },
   in_review:      { label: 'BEING BUILT',        color: '#000060', bg: '#c0c8ff' },
-  built:          { label: 'LIVE APP',           color: '#300060', bg: '#e8c0ff' },
+  built:          { label: 'SHIPPED',            color: '#300060', bg: '#e8c0ff' },
 }
 
 // ── Filter definitions ────────────────────────────────────────────────────────
@@ -31,7 +31,7 @@ const FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = 
   { key: 'pending', label: 'Pending Review',     statuses: ['submitted', 'under_review', 'awaiting_price'] },
   { key: 'pledges', label: 'Accepting Pledges',  statuses: ['priced', 'live'] },
   { key: 'funded',  label: 'Funded',             statuses: ['funded', 'building', 'in_review'] },
-  { key: 'built',   label: 'Built',              statuses: ['built'] },
+  { key: 'built',   label: 'Shipped',             statuses: ['built'] },
 ]
 
 // ── Card ──────────────────────────────────────────────────────────────────────
@@ -41,11 +41,15 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
   const days = daysUntil(idea.funding_deadline)
   const isExpiringSoon = days !== null && days <= 14 && days >= 0
   const badge = STATUS_BADGE[idea.status]
-  const PRE_LIVE = ['submitted', 'under_review', 'awaiting_price']
-  const isPreLive = PRE_LIVE.includes(idea.status)
+  const PRE_LIVE   = ['submitted', 'under_review', 'awaiting_price']
+  const LIVE_PRICED = ['live', 'priced']
+  const isPreLive   = PRE_LIVE.includes(idea.status)
+  const isLivePriced = LIVE_PRICED.includes(idea.status)
   const appLabel = idea.app_number
     ? `App #${String(idea.app_number).padStart(3, '0')}`
     : null
+  // Title bar text: "App #001" when live/priced+app_number, otherwise the idea title
+  const titleBarText = (isLivePriced && appLabel) ? appLabel : idea.title
 
   return (
     <Link href={`/fund/${idea.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -53,7 +57,7 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 
         {/* Title bar */}
         <div className="win95-title-bar">
-          <span className="font-vt323 text-lg truncate flex-1">{idea.title}</span>
+          <span className="font-vt323 text-lg truncate flex-1">{titleBarText}</span>
           {badge && (
             <span
               className="text-xs flex-shrink-0 mx-1 px-1"
@@ -79,12 +83,16 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 
         {/* Body */}
         <div className="p-3 space-y-2">
-          {/* App number or working title label */}
-          {appLabel ? (
-            <div className="font-vt323 text-lg" style={{ color: '#000080' }}>{appLabel}</div>
-          ) : isPreLive ? (
+          {/* Subtitle: working title label in relevant states */}
+          {isPreLive ? (
+            // Pre-live: title is shown in title bar, just add the label
             <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
               working title
+            </div>
+          ) : (isLivePriced && appLabel) ? (
+            // Live/priced with app number: show idea title as "working title" subtitle
+            <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+              {idea.title} <span style={{ opacity: 0.7 }}>(working title)</span>
             </div>
           ) : null}
           <p className="text-sm leading-snug" style={{ color: '#000' }}>
