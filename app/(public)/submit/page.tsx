@@ -368,9 +368,12 @@ export default function SubmitPage() {
                 type="submit"
                 className="win95-btn win95-btn-primary"
                 disabled={submitting}
-                style={{ minWidth: 140 }}
+                style={{
+                  minWidth: 140,
+                  ...(submitting ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+                }}
               >
-                {submitting ? 'Submitting...' : 'Submit Idea →'}
+                {submitting ? '⌛ Submitting...' : 'Submit Idea →'}
               </button>
             </div>
           </form>

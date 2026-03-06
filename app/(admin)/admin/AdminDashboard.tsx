@@ -106,27 +106,56 @@ export function AdminDashboard({
   const [priceOpen, setPriceOpen] = useState<Record<string, boolean>>({})
   const [buildPrice, setBuildPrice] = useState<Record<string, string>>({})
   const [buildTime, setBuildTime] = useState<Record<string, string>>({})
-  const [loadingId, setLoadingId] = useState<string | null>(null)
+
+  // Per-button loading/success/error state keyed by e.g. "${ideaId}::approve"
+  const [btnState, setBtnState] = useState<Record<string, 'loading' | 'success' | 'error'>>({})
 
   // Detail modal
   const [expandedIdea, setExpandedIdea] = useState<IdeaRow | null>(null)
   const [modalNotes, setModalNotes] = useState('')
-  const [savingNotes, setSavingNotes] = useState(false)
 
   // Ledger filter
   const [pledgeFilter, setPledgeFilter] = useState('all')
 
   // Hosting panel state
   const [hostingGoalEdit, setHostingGoalEdit] = useState<Record<string, string>>({})
-  const [hostingStatusEdit, setHostingStatusEdit] = useState<Record<string, string>>({})
-  const [hostingLoading, setHostingLoading] = useState<string | null>(null)
 
   // Lookup maps
   const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
   const ideaMap = Object.fromEntries(ideas.map((i) => [i.id, i]))
 
-  async function act(url: string, body: Record<string, unknown>, id: string) {
-    setLoadingId(id)
+  // ── Button state helpers ──────────────────────────────────────────────────
+
+  function isCardBusy(ideaId: string) {
+    return Object.keys(btnState).some(
+      (k) => k.startsWith(`${ideaId}::`) && btnState[k] === 'loading'
+    )
+  }
+
+  function bsOf(key: string) { return btnState[key] ?? 'idle' }
+
+  function styledBtn(base: React.CSSProperties, key: string): React.CSSProperties {
+    const s = bsOf(key)
+    if (s === 'loading') return { ...base, borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 }
+    if (s === 'success') return { ...base, background: '#004000', color: '#c0ffc0', borderColor: '#002000 #80ff80 #80ff80 #002000' }
+    if (s === 'error')   return { ...base, background: '#600000', color: '#ffc0c0', borderColor: '#400000 #ff8080 #ff8080 #400000' }
+    return base
+  }
+
+  function btnTxt(label: string, key: string): string {
+    const s = bsOf(key)
+    if (s === 'loading') return '⌛ Working...'
+    if (s === 'success') return '✓ Done!'
+    if (s === 'error')   return '⚠ Failed'
+    return label
+  }
+
+  async function act(url: string, body: Record<string, unknown>, key: string) {
+    setBtnState((s) => ({ ...s, [key]: 'loading' }))
+    const fail = () => {
+      setBtnState((s) => ({ ...s, [key]: 'error' }))
+      setTimeout(() => setBtnState((s) => { const n = { ...s }; delete n[key]; return n }), 2500)
+    }
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -134,11 +163,16 @@ export function AdminDashboard({
         body: JSON.stringify(body),
       })
       const json = await res.json()
-      if (!res.ok) { alert(json.error ?? 'Error'); return false }
-      router.refresh()
+      if (!res.ok) { fail(); return false }
+      setBtnState((s) => ({ ...s, [key]: 'success' }))
+      setTimeout(() => {
+        setBtnState((s) => { const n = { ...s }; delete n[key]; return n })
+        router.refresh()
+      }, 1000)
       return true
-    } finally {
-      setLoadingId(null)
+    } catch {
+      fail()
+      return false
     }
   }
 
@@ -204,7 +238,7 @@ export function AdminDashboard({
                   )}
                   {colIdeas.map((idea) => {
                     const submitterEmail = userMap[idea.submitter_id]?.email ?? '—'
-                    const isLoading = loadingId === idea.id
+                    const isLoading = isCardBusy(idea.id)
                     const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
 
                     return (
@@ -255,11 +289,11 @@ export function AdminDashboard({
                           <div className="space-y-1">
                             <div style={{ display: 'flex', gap: 4 }}>
                               <button
-                                onClick={() => act('/api/admin/approve', { idea_id: idea.id }, idea.id)}
+                                onClick={() => act('/api/admin/approve', { idea_id: idea.id }, `${idea.id}::approve`)}
                                 disabled={isLoading}
-                                style={{ ...btnNavy, flex: 1 }}
+                                style={styledBtn({ ...btnNavy, flex: 1 }, `${idea.id}::approve`)}
                               >
-                                APPROVE
+                                {btnTxt('APPROVE', `${idea.id}::approve`)}
                               </button>
                               <button
                                 onClick={() => setRejectOpen((p) => ({ ...p, [idea.id]: !p[idea.id] }))}
@@ -286,14 +320,14 @@ export function AdminDashboard({
                                     const ok = await act(
                                       '/api/admin/reject',
                                       { idea_id: idea.id, rejection_reason: rejectReason[idea.id] ?? '' },
-                                      idea.id
+                                      `${idea.id}::reject`
                                     )
                                     if (ok) setRejectOpen((p) => ({ ...p, [idea.id]: false }))
                                   }}
                                   disabled={isLoading}
-                                  style={{ ...btnDanger, width: '100%' }}
+                                  style={styledBtn({ ...btnDanger, width: '100%' }, `${idea.id}::reject`)}
                                 >
-                                  Confirm Reject
+                                  {btnTxt('Confirm Reject', `${idea.id}::reject`)}
                                 </button>
                               </div>
                             )}
@@ -342,14 +376,14 @@ export function AdminDashboard({
                                         build_price: Math.round(dollars * 100),
                                         build_time_estimate: buildTime[idea.id] ?? '',
                                       },
-                                      idea.id
+                                      `${idea.id}::price`
                                     )
                                     if (ok) setPriceOpen((p) => ({ ...p, [idea.id]: false }))
                                   }}
                                   disabled={isLoading}
-                                  style={{ ...btnNavy, width: '100%' }}
+                                  style={styledBtn({ ...btnNavy, width: '100%' }, `${idea.id}::price`)}
                                 >
-                                  Save Price
+                                  {btnTxt('Save Price', `${idea.id}::price`)}
                                 </button>
                               </div>
                             )}
@@ -361,24 +395,24 @@ export function AdminDashboard({
                           <button
                             onClick={() => {
                               if (confirm(`Capture all pledges for "${idea.title}"? This will charge all backers.`)) {
-                                act('/api/capture', { idea_id: idea.id }, idea.id)
+                                act('/api/capture', { idea_id: idea.id }, `${idea.id}::capture`)
                               }
                             }}
                             disabled={isLoading}
-                            style={{ ...btnNavy, width: '100%', padding: '4px', background: '#006000', borderColor: '#004000 #80ff80 #80ff80 #004000' }}
+                            style={styledBtn({ ...btnNavy, width: '100%', padding: '4px', background: '#006000', borderColor: '#004000 #80ff80 #80ff80 #004000' }, `${idea.id}::capture`)}
                           >
-                            💰 CAPTURE ALL PLEDGES
+                            {btnTxt('💰 CAPTURE ALL PLEDGES', `${idea.id}::capture`)}
                           </button>
                         )}
 
                         {/* PRICED: Go Live */}
                         {status === 'priced' && (
                           <button
-                            onClick={() => act('/api/admin/golive', { idea_id: idea.id }, idea.id)}
+                            onClick={() => act('/api/admin/golive', { idea_id: idea.id }, `${idea.id}::golive`)}
                             disabled={isLoading}
-                            style={{ ...btnNavy, width: '100%', padding: '4px' }}
+                            style={styledBtn({ ...btnNavy, width: '100%', padding: '4px' }, `${idea.id}::golive`)}
                           >
-                            🚀 GO LIVE
+                            {btnTxt('🚀 GO LIVE', `${idea.id}::golive`)}
                           </button>
                         )}
 
@@ -386,13 +420,13 @@ export function AdminDashboard({
                         <button
                           onClick={() => {
                             if (confirm('Delete this idea and cancel all pledges? This cannot be undone.')) {
-                              act('/api/admin/delete', { idea_id: idea.id }, idea.id)
+                              act('/api/admin/delete', { idea_id: idea.id }, `${idea.id}::delete`)
                             }
                           }}
                           disabled={isLoading}
-                          style={{ ...btnDanger, width: '100%', marginTop: 4, borderTop: '1px solid #c08080' }}
+                          style={styledBtn({ ...btnDanger, width: '100%', marginTop: 4, borderTop: '1px solid #c08080' }, `${idea.id}::delete`)}
                         >
-                          DELETE
+                          {btnTxt('DELETE', `${idea.id}::delete`)}
                         </button>
                       </div>
                     )
@@ -439,13 +473,13 @@ export function AdminDashboard({
                 <button
                   onClick={() => {
                     if (confirm(`Capture all pledges for "${idea.title}"? This will charge all backers.`)) {
-                      act('/api/capture', { idea_id: idea.id }, idea.id)
+                      act('/api/capture', { idea_id: idea.id }, `${idea.id}::ledger-cap`)
                     }
                   }}
-                  disabled={loadingId === idea.id}
-                  style={{ ...btnNavy, padding: '4px 12px' }}
+                  disabled={isCardBusy(idea.id)}
+                  style={styledBtn({ ...btnNavy, padding: '4px 12px' }, `${idea.id}::ledger-cap`)}
                 >
-                  CAPTURE ALL
+                  {btnTxt('CAPTURE ALL', `${idea.id}::ledger-cap`)}
                 </button>
               </div>
             ))}
@@ -567,22 +601,6 @@ export function AdminDashboard({
 
   // ── Hosting panel ─────────────────────────────────────────────────────────
 
-  async function hostingAct(idea_id: string, payload: Record<string, unknown>) {
-    setHostingLoading(idea_id)
-    try {
-      const res = await fetch('/api/admin/hosting', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idea_id, ...payload }),
-      })
-      const json = await res.json()
-      if (!res.ok) { alert(json.error ?? 'Error'); return }
-      router.refresh()
-    } finally {
-      setHostingLoading(null)
-    }
-  }
-
   const hostingPanel = (
     <div className="win95-window" style={{ flex: 1, minWidth: 0 }}>
       <div className="win95-title-bar">
@@ -607,7 +625,7 @@ export function AdminDashboard({
                 const goal = app.hosting_monthly_goal ?? 0
                 const collected = app.hosting_collected ?? 0
                 const pct = goal > 0 ? Math.min(100, Math.round((collected / goal) * 100)) : 0
-                const isLoading = hostingLoading === app.id
+                const isLoading = isCardBusy(app.id)
                 const statusColor = app.hosting_status === 'active' ? '#006000' : app.hosting_status === 'warning' ? '#886600' : '#cc0000'
 
                 return (
@@ -631,12 +649,12 @@ export function AdminDashboard({
                         <button
                           onClick={() => {
                             const dollars = parseFloat(hostingGoalEdit[app.id] ?? '0')
-                            hostingAct(app.id, { hosting_monthly_goal: Math.round(dollars * 100) })
+                            act('/api/admin/hosting', { idea_id: app.id, hosting_monthly_goal: Math.round(dollars * 100) }, `${app.id}::h-goal`)
                           }}
                           disabled={isLoading}
-                          style={{ ...btnNavy, padding: '1px 6px' }}
+                          style={styledBtn({ ...btnNavy, padding: '1px 6px' }, `${app.id}::h-goal`)}
                         >
-                          Save
+                          {btnTxt('Save', `${app.id}::h-goal`)}
                         </button>
                       </div>
                       <div style={{ marginTop: 4, opacity: 0.7 }}>{formatDollars(goal)}/mo</div>
@@ -668,11 +686,11 @@ export function AdminDashboard({
                         {['active', 'warning', 'offline'].map((s) => (
                           <button
                             key={s}
-                            onClick={() => hostingAct(app.id, { hosting_status: s })}
+                            onClick={() => act('/api/admin/hosting', { idea_id: app.id, hosting_status: s }, `${app.id}::h-${s}`)}
                             disabled={isLoading || app.hosting_status === s}
-                            style={{ ...btnBase, padding: '1px 4px', fontSize: 10, opacity: app.hosting_status === s ? 0.4 : 1 }}
+                            style={styledBtn({ ...btnBase, padding: '1px 4px', fontSize: 10, opacity: app.hosting_status === s ? 0.4 : 1 }, `${app.id}::h-${s}`)}
                           >
-                            {s}
+                            {btnTxt(s, `${app.id}::h-${s}`)}
                           </button>
                         ))}
                       </div>
@@ -812,25 +830,11 @@ export function AdminDashboard({
                   placeholder="Internal notes…"
                 />
                 <button
-                  onClick={async () => {
-                    setSavingNotes(true)
-                    try {
-                      const res = await fetch('/api/admin/notes', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ idea_id: expandedIdea.id, admin_notes: modalNotes }),
-                      })
-                      const json = await res.json()
-                      if (!res.ok) { alert(json.error ?? 'Error'); return }
-                      router.refresh()
-                    } finally {
-                      setSavingNotes(false)
-                    }
-                  }}
-                  disabled={savingNotes}
-                  style={{ ...btnNavy, marginTop: 4, padding: '3px 12px' }}
+                  onClick={() => act('/api/admin/notes', { idea_id: expandedIdea.id, admin_notes: modalNotes }, `${expandedIdea.id}::notes`)}
+                  disabled={btnState[`${expandedIdea.id}::notes`] !== undefined}
+                  style={styledBtn({ ...btnNavy, marginTop: 4, padding: '3px 12px' }, `${expandedIdea.id}::notes`)}
                 >
-                  {savingNotes ? 'Saving…' : 'Save Notes'}
+                  {btnTxt('Save Notes', `${expandedIdea.id}::notes`)}
                 </button>
               </div>
             </div>

@@ -71,9 +71,12 @@ function CardForm({
         onClick={handleConfirm}
         disabled={confirming}
         className="win95-btn win95-btn-primary w-full"
-        style={{ padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace' }}
+        style={{
+          padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace',
+          ...(confirming ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+        }}
       >
-        {confirming ? 'Processing…' : 'CONTRIBUTE NOW'}
+        {confirming ? '⌛ Processing…' : 'CONTRIBUTE NOW'}
       </button>
     </div>
   )
@@ -212,9 +215,12 @@ export function HostingContribute({
               onClick={handleContribute}
               disabled={loading || !activeCents}
               className="win95-btn win95-btn-primary w-full"
-              style={{ padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace' }}
+              style={{
+                padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace',
+                ...(loading ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+              }}
             >
-              {loading ? 'Processing…' : 'CONTRIBUTE TO HOSTING'}
+              {loading ? '⌛ Processing…' : 'CONTRIBUTE TO HOSTING'}
             </button>
           </>
         )}

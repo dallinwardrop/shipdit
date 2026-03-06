@@ -78,9 +78,12 @@ function CardForm({
         onClick={handleConfirm}
         disabled={confirming || !stripe}
         className="win95-btn win95-btn-primary w-full"
-        style={{ padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace' }}
+        style={{
+          padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace',
+          ...(confirming ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+        }}
       >
-        {confirming ? 'Processing...' : 'CONFIRM PAYMENT'}
+        {confirming ? '⌛ Processing...' : 'CONFIRM PAYMENT'}
       </button>
     </div>
   )
@@ -292,9 +295,12 @@ export function PledgeBox({
                 onClick={handlePledge}
                 disabled={loading || !activeCents}
                 className="win95-btn win95-btn-primary w-full"
-                style={{ padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace' }}
+                style={{
+                  padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace',
+                  ...(loading ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+                }}
               >
-                {loading ? 'Processing...' : 'BACK THIS APP'}
+                {loading ? '⌛ Processing...' : 'BACK THIS APP'}
               </button>
             </div>
           )}

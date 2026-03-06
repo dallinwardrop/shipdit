@@ -16,6 +16,7 @@ export function NavAuth() {
   const router = useRouter()
   const [displayName, setDisplayName] = useState<string | null>(null)
   const [ready, setReady] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
 
   useEffect(() => {
     const supabase = getSupabase()
@@ -46,6 +47,7 @@ export function NavAuth() {
   }, [])
 
   const handleSignOut = async () => {
+    setSigningOut(true)
     const supabase = getSupabase()
     await supabase.auth.signOut()
     router.push('/login')
@@ -67,8 +69,13 @@ export function NavAuth() {
         >
           {displayName}
         </span>
-        <button onClick={handleSignOut} className="win95-btn text-xs">
-          Sign Out
+        <button
+          onClick={handleSignOut}
+          disabled={signingOut}
+          className="win95-btn text-xs"
+          style={signingOut ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}}
+        >
+          {signingOut ? '⌛' : 'Sign Out'}
         </button>
       </div>
     )
