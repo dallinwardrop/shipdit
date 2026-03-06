@@ -9,7 +9,6 @@ import type { FeatureItem } from '@/lib/supabase/types'
 type Backer = {
   amount: number
   type: string
-  users: { full_name: string | null; username: string | null } | null
 }
 
 export default async function FundIdeaPage({
@@ -30,7 +29,7 @@ export default async function FundIdeaPage({
 
   const { data: backerRows } = await supabase
     .from('pledges')
-    .select('amount, type, users(full_name, username)')
+    .select('amount, type')
     .eq('app_idea_id', idea.id)
     .in('status', ['held', 'captured'])
     .order('amount', { ascending: false })
@@ -139,16 +138,12 @@ export default async function FundIdeaPage({
                 <span className="font-vt323 text-lg">Backer Wall</span>
               </div>
               <div className="p-3 space-y-1">
-                {backers.map((b, i) => {
-                  const name = b.users?.full_name ?? b.users?.username ?? 'Anonymous'
-                  const label = name.split(' ')[0]
-                  return (
-                    <div key={i} className="win95-raised p-2 flex justify-between items-center text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                      <span>{i === 0 && '★ '}<strong>{label}</strong></span>
-                      <span>{formatDollars(b.amount)}</span>
-                    </div>
-                  )
-                })}
+                {backers.map((b, i) => (
+                  <div key={i} className="win95-raised p-2 flex justify-between items-center text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+                    <span>{i === 0 && '★ '}<strong>Anonymous</strong></span>
+                    <span>{formatDollars(b.amount)}</span>
+                  </div>
+                ))}
               </div>
             </div>
           )}
