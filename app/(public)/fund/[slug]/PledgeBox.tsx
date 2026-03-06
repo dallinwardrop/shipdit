@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { daysUntil } from '@/lib/utils'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -90,9 +91,11 @@ function CardForm({
 export function PledgeBox({
   appIdeaId,
   slug,
+  fundingDeadline,
 }: {
   appIdeaId: string
   slug: string
+  fundingDeadline?: string | null
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -170,8 +173,28 @@ export function PledgeBox({
     )
   }
 
+  const days = daysUntil(fundingDeadline ?? null)
+  const isClosingSoon = days !== null && days <= 3 && days >= 0
+  const showUrgency = days !== null && days <= 7 && days >= 0
+
   return (
     <div className="space-y-3">
+      {showUrgency && (
+        <div
+          className="win95-raised p-2 text-xs text-center"
+          style={{
+            fontFamily: 'Share Tech Mono, monospace',
+            background: isClosingSoon ? '#fff0f0' : '#fff8e8',
+            borderColor: isClosingSoon ? '#cc0000 #660000 #660000 #cc0000' : '#804000 #402000 #402000 #804000',
+            color: isClosingSoon ? 'darkred' : '#804000',
+            fontWeight: 'bold',
+          }}
+        >
+          {isClosingSoon
+            ? `⚠️ Closing soon! ${days === 0 ? 'Last day' : `${days} day${days !== 1 ? 's' : ''} left`} to fund this.`
+            : `⚡ ${days} day${days !== 1 ? 's' : ''} left to fund this.`}
+        </div>
+      )}
       <div className="win95-window">
         <div className="win95-title-bar">
           <span className="font-vt323 text-xl">pledge_now.exe</span>

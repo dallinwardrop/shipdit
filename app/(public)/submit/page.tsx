@@ -377,6 +377,16 @@ export default function SubmitPage() {
         </div>
       </div>
 
+      {/* 7-day urgency callout */}
+      <div className="win95-window">
+        <div className="win95-title-bar" style={{ background: '#804000' }}>
+          <span className="font-vt323 text-lg">⚡ Once approved: 7 days to fund it</span>
+        </div>
+        <div className="p-3 text-sm space-y-1" style={{ fontFamily: 'Share Tech Mono, monospace', background: '#fff8e8' }}>
+          <p>Once approved, your idea goes live for <strong>7 days</strong>. Share it everywhere. Make TikToks. If it funds, I build it. If not, no one gets charged.</p>
+        </div>
+      </div>
+
       {/* Terms */}
       <div className="win95-window">
         <div className="win95-title-bar">

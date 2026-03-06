@@ -39,7 +39,7 @@ const FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = 
 function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const days = daysUntil(idea.funding_deadline)
-  const isExpiringSoon = days !== null && days <= 14 && days >= 0
+  const isExpiringSoon = days !== null && days <= 3 && days >= 0
   const badge = STATUS_BADGE[idea.status]
   const isPreLive = ['submitted', 'under_review', 'awaiting_price'].includes(idea.status)
   const appLabel = idea.app_number

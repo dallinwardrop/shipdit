@@ -57,6 +57,10 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
         a: '7 days from when the idea goes live in the queue. After that, unfunded ideas expire and all pledges are refunded.',
       },
       {
+        q: 'Why only 7 days?',
+        a: 'Urgency drives action. A 7-day window means you have one week to rally your community, make TikToks, and get it funded. If it doesn\'t hit the goal in 7 days, all holds are released and no one gets charged. You can always resubmit and try again.',
+      },
+      {
         q: 'Who builds the apps?',
         a: 'I do — Dallin Wardrop, a product manager and developer with 10+ years building software products. Shipdit is my commitment to build what the community actually wants.',
       },

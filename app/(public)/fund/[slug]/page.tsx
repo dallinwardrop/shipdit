@@ -196,7 +196,7 @@ export default async function FundIdeaPage({
         {/* ── Right column (35%) — sticky ── */}
         <div style={{ flex: '0 0 35%', minWidth: 0, position: 'sticky', top: 16, alignSelf: 'flex-start' }}>
           {isPledgeOpen ? (
-            <PledgeBox appIdeaId={idea.id} slug={slug} />
+            <PledgeBox appIdeaId={idea.id} slug={slug} fundingDeadline={idea.funding_deadline} />
           ) : (
             <div className="win95-window">
               <div className="win95-title-bar">

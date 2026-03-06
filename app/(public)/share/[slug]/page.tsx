@@ -43,7 +43,7 @@ export default async function SharePage({
   // TikTok script
   const goalSnippet = (idea.goal_description ?? '').slice(0, 100).trimEnd() +
     ((idea.goal_description ?? '').length > 100 ? '…' : '')
-  const tiktokScript = `I just submitted an app idea to Shipdit and put real money behind it 💰 If enough people back it, someone actually builds it — and everyone gets it free. Here's my idea: ${goalSnippet}. Back it at shipdit.co 🚀 #shipdit #fundmyapp #buildit`
+  const tiktokScript = `I just submitted an app idea to Shipdit and put real money behind it 💰 If enough people back it in the next 7 days, someone actually builds it — and everyone gets it free. Here's my idea: ${goalSnippet}. We only have 7 days to fund this. Back it at shipdit.co 🚀 #shipdit #fundmyapp #buildit`
   const tiktokCaption = '#shipdit #fundmyapp #buildit #appidea'
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
