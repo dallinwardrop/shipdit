@@ -701,13 +701,13 @@ export function AdminDashboard({
                       <button
                         onClick={() => {
                           if (confirm(`Send hosting reminder to all backers of "${app.title}"?`)) {
-                            hostingAct(app.id, { send_reminder: true })
+                            act('/api/admin/hosting', { app_idea_id: app.id, send_reminder: true }, `${app.id}::h-remind`)
                           }
                         }}
                         disabled={isLoading}
-                        style={{ ...btnNavy, padding: '2px 6px', whiteSpace: 'nowrap' }}
+                        style={styledBtn({ ...btnNavy, padding: '2px 6px', whiteSpace: 'nowrap' }, `${app.id}::h-remind`)}
                       >
-                        Send Reminder
+                        {btnTxt('Send Reminder', `${app.id}::h-remind`)}
                       </button>
                     </td>
                   </tr>

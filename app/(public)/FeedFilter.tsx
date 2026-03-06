@@ -141,13 +141,27 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
             const hColor = hPct >= 50 ? '#006600' : hPct >= 25 ? '#886600' : '#cc0000'
             return (
               <div className="space-y-1">
-                <div className="text-xs flex justify-between" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-                  <span>Hosting</span>
-                  <span style={{ color: hColor, fontWeight: 'bold' }}>{hPct}%</span>
-                </div>
-                <div className="win95-progress-track" style={{ height: 6 }}>
-                  <div className="win95-progress-fill" style={{ width: `${hPct}%`, background: hColor }} />
-                </div>
+                <a
+                  href={`/hosting/${idea.slug}`}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ textDecoration: 'none', display: 'block' }}
+                >
+                  <div className="text-xs flex justify-between" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                    <span>Hosting</span>
+                    <span style={{ color: hColor, fontWeight: 'bold' }}>{hPct}%</span>
+                  </div>
+                  <div className="win95-progress-track" style={{ height: 6 }}>
+                    <div className="win95-progress-fill" style={{ width: `${hPct}%`, background: hColor }} />
+                  </div>
+                </a>
+                <a
+                  href={`/hosting/${idea.slug}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-xs"
+                  style={{ fontFamily: 'Share Tech Mono, monospace', color: '#000080', display: 'block', textAlign: 'right' }}
+                >
+                  Support Hosting →
+                </a>
               </div>
             )
           })()}
@@ -156,7 +170,9 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
           <div className="win95-sunken p-2 flex flex-wrap gap-3 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
             <span><span style={{ color: '#000080' }}>●</span> {idea.backer_count} backer{idea.backer_count !== 1 ? 's' : ''}</span>
             <span><span style={{ color: '#808080' }}>○</span> {idea.watcher_count} watcher{idea.watcher_count !== 1 ? 's' : ''}</span>
-            {days !== null && (
+            {idea.status === 'built' ? (
+              <span style={{ color: '#300060', fontWeight: 'bold' }}>🚀 SHIPD</span>
+            ) : days !== null && (
               <span style={{ color: isExpiringSoon ? 'darkred' : 'inherit' }}>
                 {days > 0 ? `${days}d left` : days === 0 ? 'LAST DAY' : 'EXPIRED'}
               </span>

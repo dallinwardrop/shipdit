@@ -161,8 +161,8 @@ export default async function FundIdeaPage({
                   <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>Watchers</div>
                 </div>
                 <div className="win95-raised p-2 text-center">
-                  <div className="font-vt323 text-3xl" style={{ color: days !== null && days <= 7 ? 'darkred' : '#000080' }}>
-                    {days === null ? '∞' : days <= 0 ? 'ENDED' : `${days}d`}
+                  <div className="font-vt323 text-3xl" style={{ color: idea.status === 'built' ? '#300060' : days !== null && days <= 7 ? 'darkred' : '#000080' }}>
+                    {idea.status === 'built' ? 'SHIPD' : days === null ? '∞' : days <= 0 ? 'ENDED' : `${days}d`}
                   </div>
                   <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>Days Left</div>
                 </div>
@@ -214,15 +214,27 @@ export default async function FundIdeaPage({
               <div className="win95-title-bar">
                 <span className="font-vt323 text-lg">Status</span>
               </div>
-              <div className="p-3 text-sm" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+              <div className="p-3 text-sm space-y-2" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
                 {idea.status === 'funded'   && '✓ Fully funded! Build starting soon.'}
                 {idea.status === 'building' && '🔨 Build in progress.'}
                 {idea.status === 'in_review' && '🔍 Build complete — in final review.'}
                 {idea.status === 'built'    && '🚀 Shipd! This app is live for everyone.'}
-                {idea.demo_url && (
+                {idea.status !== 'built' && idea.demo_url && (
                   <a href={idea.demo_url} target="_blank" rel="noopener noreferrer" className="win95-btn inline-block mt-2 text-xs">
                     View Demo →
                   </a>
+                )}
+                {idea.status === 'built' && (
+                  <div className="space-y-2 mt-2">
+                    {idea.demo_url && (
+                      <a href={idea.demo_url} target="_blank" rel="noopener noreferrer" className="win95-btn block text-center text-xs" style={{ padding: '6px' }}>
+                        Launch App →
+                      </a>
+                    )}
+                    <a href={`/hosting/${slug}`} className="win95-btn block text-center text-xs" style={{ padding: '6px' }}>
+                      💙 Support Hosting
+                    </a>
+                  </div>
                 )}
               </div>
             </div>
