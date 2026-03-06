@@ -58,6 +58,9 @@ export function NavAuth() {
   if (displayName) {
     return (
       <div className="flex items-center gap-2">
+        <Link href="/pledges" className="win95-btn text-xs">
+          My Pledges
+        </Link>
         <span
           className="text-xs"
           style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}
