@@ -176,6 +176,56 @@ export async function sendIdeaLive(
   await send(to, `${appTitle} is now open for funding`, html)
 }
 
+export async function sendHostingReminder(
+  to: string,
+  { appTitle, slug, amountNeeded, daysLeft }: {
+    appTitle: string
+    slug: string
+    amountNeeded: number
+    daysLeft: number
+  }
+): Promise<void> {
+  const html = layout(
+    `<h2 style="margin-top:0;color:#000080;">Help keep ${appTitle} online</h2>
+     <p>The hosting for <strong>${appTitle}</strong> is coming up for renewal in <strong>${daysLeft} day${daysLeft !== 1 ? 's' : ''}</strong>.</p>
+     <p>We still need <strong>${dollars(amountNeeded)}</strong> to cover this month's hosting and keep the app free for everyone.</p>
+     <p>As a backer who helped fund this app, your contribution keeps it running. Every dollar helps.</p>`,
+    { text: 'Contribute to hosting →', url: `${APP_URL}/hosting/${slug}` }
+  )
+  await send(to, `Help keep ${appTitle} online — hosting renewal needed`, html)
+}
+
+export async function sendHostingOffline(
+  to: string,
+  { appTitle, slug }: { appTitle: string; slug: string }
+): Promise<void> {
+  const html = layout(
+    `<h2 style="margin-top:0;color:#cc0000;">${appTitle} has gone offline</h2>
+     <p>Unfortunately, <strong>${appTitle}</strong> has been taken offline due to unpaid hosting costs.</p>
+     <p>You can help bring it back by contributing to hosting. Once enough funding is collected, the app will come back online free for everyone.</p>`,
+    { text: 'Help bring it back →', url: `${APP_URL}/hosting/${slug}` }
+  )
+  await send(to, `${appTitle} has gone offline — help bring it back`, html)
+}
+
+export async function sendHostingFunded(
+  to: string,
+  { appTitle, slug, totalCollected }: {
+    appTitle: string
+    slug: string
+    totalCollected: number
+  }
+): Promise<void> {
+  const html = layout(
+    `<h2 style="margin-top:0;color:#000080;">✓ Hosting funded for ${appTitle}</h2>
+     <p>Thanks to community contributions, <strong>${appTitle}</strong> is fully funded for another month.</p>
+     <p>A total of <strong>${dollars(totalCollected)}</strong> was collected this period. The app will stay free for everyone.</p>
+     <p>Thank you for keeping this community-funded project alive.</p>`,
+    { text: 'View the app →', url: `${APP_URL}/hosting/${slug}` }
+  )
+  await send(to, `✓ Hosting funded for ${appTitle} — thank you!`, html)
+}
+
 export async function sendRefundIssued(
   to: string,
   { appTitle, amount }: { appTitle: string; amount: number }

@@ -46,6 +46,15 @@ export type UserRow = {
   is_admin: boolean
 }
 
+export type HostingRow = {
+  id: string
+  title: string
+  slug: string | null
+  hosting_monthly_goal: number
+  hosting_collected: number
+  hosting_status: string
+}
+
 // ── Pipeline columns ──────────────────────────────────────────────────────────
 
 const PIPELINE_COLS = [
@@ -81,13 +90,15 @@ export function AdminDashboard({
   ideas,
   pledges,
   users,
+  shippedIdeas,
 }: {
   ideas: IdeaRow[]
   pledges: PledgeRow[]
   users: UserRow[]
+  shippedIdeas: HostingRow[]
 }) {
   const router = useRouter()
-  const [panel, setPanel] = useState<'pipeline' | 'ledger' | 'users'>('pipeline')
+  const [panel, setPanel] = useState<'pipeline' | 'ledger' | 'users' | 'hosting'>('pipeline')
 
   // Per-idea action state
   const [rejectOpen, setRejectOpen] = useState<Record<string, boolean>>({})
@@ -104,6 +115,11 @@ export function AdminDashboard({
 
   // Ledger filter
   const [pledgeFilter, setPledgeFilter] = useState('all')
+
+  // Hosting panel state
+  const [hostingGoalEdit, setHostingGoalEdit] = useState<Record<string, string>>({})
+  const [hostingStatusEdit, setHostingStatusEdit] = useState<Record<string, string>>({})
+  const [hostingLoading, setHostingLoading] = useState<string | null>(null)
 
   // Lookup maps
   const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
@@ -142,6 +158,7 @@ export function AdminDashboard({
             ['pipeline', '📋 Pipeline'],
             ['ledger',   '💳 Pledge Ledger'],
             ['users',    '👤 Users'],
+            ['hosting',  '🖥 Hosting'],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -548,6 +565,143 @@ export function AdminDashboard({
     </div>
   )
 
+  // ── Hosting panel ─────────────────────────────────────────────────────────
+
+  async function hostingAct(idea_id: string, payload: Record<string, unknown>) {
+    setHostingLoading(idea_id)
+    try {
+      const res = await fetch('/api/admin/hosting', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ idea_id, ...payload }),
+      })
+      const json = await res.json()
+      if (!res.ok) { alert(json.error ?? 'Error'); return }
+      router.refresh()
+    } finally {
+      setHostingLoading(null)
+    }
+  }
+
+  const hostingPanel = (
+    <div className="win95-window" style={{ flex: 1, minWidth: 0 }}>
+      <div className="win95-title-bar">
+        <span className="font-vt323 text-base">Hosting — Shipped Apps ({shippedIdeas.length})</span>
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        {shippedIdeas.length === 0 ? (
+          <p className="p-4 text-xs text-center" style={{ opacity: 0.4, fontFamily: 'Share Tech Mono, monospace' }}>
+            No shipped apps yet.
+          </p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Share Tech Mono, monospace', fontSize: 11 }}>
+            <thead>
+              <tr style={{ background: '#000080', color: '#fff' }}>
+                {['App', 'Monthly Goal', 'Collected', 'Status', 'Actions'].map((h) => (
+                  <th key={h} style={{ padding: '4px 8px', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {shippedIdeas.map((app, i) => {
+                const goal = app.hosting_monthly_goal ?? 0
+                const collected = app.hosting_collected ?? 0
+                const pct = goal > 0 ? Math.min(100, Math.round((collected / goal) * 100)) : 0
+                const isLoading = hostingLoading === app.id
+                const statusColor = app.hosting_status === 'active' ? '#006000' : app.hosting_status === 'warning' ? '#886600' : '#cc0000'
+
+                return (
+                  <tr key={app.id} style={{ background: i % 2 === 0 ? '#e8e8e8' : '#f4f4f4', verticalAlign: 'top' }}>
+                    <td style={{ padding: '6px 8px' }}>
+                      <div className="font-vt323" style={{ fontSize: 14, color: '#000080' }}>{app.title}</div>
+                      {app.slug && <div style={{ opacity: 0.6 }}>{app.slug}</div>}
+                    </td>
+
+                    {/* Monthly goal — editable */}
+                    <td style={{ padding: '6px 8px' }}>
+                      <div style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                        <input
+                          type="number"
+                          className="win95-input"
+                          style={{ width: 80, fontSize: 11 }}
+                          placeholder="$ goal"
+                          value={hostingGoalEdit[app.id] ?? String(Math.round(goal / 100))}
+                          onChange={(e) => setHostingGoalEdit((p) => ({ ...p, [app.id]: e.target.value }))}
+                        />
+                        <button
+                          onClick={() => {
+                            const dollars = parseFloat(hostingGoalEdit[app.id] ?? '0')
+                            hostingAct(app.id, { hosting_monthly_goal: Math.round(dollars * 100) })
+                          }}
+                          disabled={isLoading}
+                          style={{ ...btnNavy, padding: '1px 6px' }}
+                        >
+                          Save
+                        </button>
+                      </div>
+                      <div style={{ marginTop: 4, opacity: 0.7 }}>{formatDollars(goal)}/mo</div>
+                    </td>
+
+                    {/* Collected + meter */}
+                    <td style={{ padding: '6px 8px' }}>
+                      <div>{formatDollars(collected)}</div>
+                      <div style={{ marginTop: 4, height: 6, background: '#d0d0d0', width: 80 }}>
+                        <div style={{
+                          height: '100%',
+                          width: `${pct}%`,
+                          background: pct >= 50 ? '#006600' : pct >= 25 ? '#886600' : '#cc0000',
+                        }} />
+                      </div>
+                      <div style={{ opacity: 0.7 }}>{pct}%</div>
+                    </td>
+
+                    {/* Status toggle */}
+                    <td style={{ padding: '6px 8px' }}>
+                      <span style={{
+                        display: 'inline-block', padding: '1px 5px', fontSize: 10,
+                        background: app.hosting_status === 'active' ? '#c0ffc0' : app.hosting_status === 'warning' ? '#fff0c0' : '#ffc0c0',
+                        border: `1px solid ${statusColor}`, color: statusColor,
+                      }}>
+                        {(app.hosting_status ?? 'active').toUpperCase()}
+                      </span>
+                      <div style={{ marginTop: 4, display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+                        {['active', 'warning', 'offline'].map((s) => (
+                          <button
+                            key={s}
+                            onClick={() => hostingAct(app.id, { hosting_status: s })}
+                            disabled={isLoading || app.hosting_status === s}
+                            style={{ ...btnBase, padding: '1px 4px', fontSize: 10, opacity: app.hosting_status === s ? 0.4 : 1 }}
+                          >
+                            {s}
+                          </button>
+                        ))}
+                      </div>
+                    </td>
+
+                    {/* Actions */}
+                    <td style={{ padding: '6px 8px' }}>
+                      <button
+                        onClick={() => {
+                          if (confirm(`Send hosting reminder to all backers of "${app.title}"?`)) {
+                            hostingAct(app.id, { send_reminder: true })
+                          }
+                        }}
+                        disabled={isLoading}
+                        style={{ ...btnNavy, padding: '2px 6px', whiteSpace: 'nowrap' }}
+                      >
+                        Send Reminder
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+
   // ── Layout ────────────────────────────────────────────────────────────────
 
   return (
@@ -557,6 +711,7 @@ export function AdminDashboard({
         {panel === 'pipeline' && pipelinePanel}
         {panel === 'ledger'   && ledgerPanel}
         {panel === 'users'    && usersPanel}
+        {panel === 'hosting'  && hostingPanel}
       </div>
 
       {/* ── Detail Modal ──────────────────────────────────────────────────── */}

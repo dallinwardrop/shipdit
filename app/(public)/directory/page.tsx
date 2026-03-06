@@ -7,7 +7,7 @@ export default async function DirectoryPage() {
 
   const { data: apps } = await supabase
     .from('live_apps')
-    .select('*, app_ideas(title, slug, goal_description)')
+    .select('*, app_ideas(title, slug, goal_description, hosting_monthly_goal, hosting_collected, hosting_status)')
     .eq('is_online', true)
     .order('is_featured', { ascending: false })
     .order('created_at', { ascending: false })
@@ -44,7 +44,7 @@ export default async function DirectoryPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {apps.map((app) => {
             const idea = (app.app_ideas as unknown) as
-              | { title: string; slug: string; goal_description: string }
+              | { title: string; slug: string; goal_description: string; hosting_monthly_goal: number; hosting_collected: number; hosting_status: string }
               | null
             return (
               <div key={app.id} className="win95-window">
@@ -58,6 +58,24 @@ export default async function DirectoryPage() {
                 </div>
                 <div className="p-3 space-y-2">
                   {idea && <p className="text-xs">{idea.goal_description}</p>}
+
+                  {/* Hosting meter */}
+                  {idea && idea.hosting_monthly_goal > 0 && (() => {
+                    const hPct = Math.min(100, Math.round((idea.hosting_collected / idea.hosting_monthly_goal) * 100))
+                    const hColor = hPct >= 50 ? '#006600' : hPct >= 25 ? '#886600' : '#cc0000'
+                    return (
+                      <div className="space-y-1">
+                        <div className="flex justify-between text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+                          <span style={{ color: '#404040' }}>Hosting</span>
+                          <span style={{ color: hColor, fontWeight: 'bold' }}>{hPct}%</span>
+                        </div>
+                        <div className="win95-progress-track" style={{ height: 6 }}>
+                          <div className="win95-progress-fill" style={{ width: `${hPct}%`, background: hColor }} />
+                        </div>
+                      </div>
+                    )
+                  })()}
+
                   <div className="win95-raised p-2 text-xs">
                     <p>
                       URL:{' '}
@@ -76,6 +94,11 @@ export default async function DirectoryPage() {
                     >
                       Open App →
                     </a>
+                    {idea?.slug && (
+                      <a href={`/hosting/${idea.slug}`} className="win95-btn text-xs text-center">
+                        Hosting
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>

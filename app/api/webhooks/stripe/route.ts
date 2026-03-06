@@ -106,22 +106,46 @@ export async function POST(request: NextRequest) {
     case 'payment_intent.succeeded': {
       const pi = event.data.object as Stripe.PaymentIntent
 
-      // Update pledge status
-      const { data: updatedPledges } = await admin
-        .from('pledges')
-        .update({ status: 'captured', captured_at: new Date().toISOString() })
-        .eq('stripe_payment_intent_id', pi.id)
-        .select('user_id, amount, app_idea_id')
+      if (pi.metadata?.type === 'hosting') {
+        // Mark hosting contribution as captured
+        await admin
+          .from('hosting_contributions')
+          .update({ status: 'captured' })
+          .eq('stripe_payment_intent_id', pi.id)
 
-      // Email the backer — their card was just charged
-      const pledge = updatedPledges?.[0]
-      if (pledge) {
-        const [{ data: idea }, { data: backer }] = await Promise.all([
-          admin.from('app_ideas').select('title').eq('id', pledge.app_idea_id).single(),
-          admin.from('users').select('email').eq('id', pledge.user_id).single(),
-        ])
-        if (idea && backer?.email) {
-          sendGoalHit(backer.email, { appTitle: idea.title, amount: pledge.amount }).catch(console.error)
+        // Increment hosting_collected on the idea
+        const appIdeaId = pi.metadata.app_idea_id
+        if (appIdeaId) {
+          const { data: idea } = await admin
+            .from('app_ideas')
+            .select('hosting_collected')
+            .eq('id', appIdeaId)
+            .single()
+          if (idea != null) {
+            await admin
+              .from('app_ideas')
+              .update({ hosting_collected: (idea.hosting_collected ?? 0) + pi.amount })
+              .eq('id', appIdeaId)
+          }
+        }
+      } else {
+        // Update pledge status
+        const { data: updatedPledges } = await admin
+          .from('pledges')
+          .update({ status: 'captured', captured_at: new Date().toISOString() })
+          .eq('stripe_payment_intent_id', pi.id)
+          .select('user_id, amount, app_idea_id')
+
+        // Email the backer — their card was just charged
+        const pledge = updatedPledges?.[0]
+        if (pledge) {
+          const [{ data: idea }, { data: backer }] = await Promise.all([
+            admin.from('app_ideas').select('title').eq('id', pledge.app_idea_id).single(),
+            admin.from('users').select('email').eq('id', pledge.user_id).single(),
+          ])
+          if (idea && backer?.email) {
+            sendGoalHit(backer.email, { appTitle: idea.title, amount: pledge.amount }).catch(console.error)
+          }
         }
       }
       break

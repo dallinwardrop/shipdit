@@ -99,6 +99,10 @@ export type Database = {
           live_at: string | null
           funded_at: string | null
           built_at: string | null
+          hosting_monthly_goal: number
+          hosting_collected: number
+          hosting_period_start: string | null
+          hosting_status: string
           created_at: string
         }
         Insert: {
@@ -130,6 +134,10 @@ export type Database = {
           live_at?: string | null
           funded_at?: string | null
           built_at?: string | null
+          hosting_monthly_goal?: number
+          hosting_collected?: number
+          hosting_period_start?: string | null
+          hosting_status?: string
           created_at?: string
         }
         Update: {
@@ -160,6 +168,10 @@ export type Database = {
           live_at?: string | null
           funded_at?: string | null
           built_at?: string | null
+          hosting_monthly_goal?: number
+          hosting_collected?: number
+          hosting_period_start?: string | null
+          hosting_status?: string
         }
         Relationships: []
       }
@@ -249,6 +261,34 @@ export type Database = {
           hosting_expires_at?: string
           hosting_fund_balance?: number
           user_count?: number
+        }
+        Relationships: []
+      }
+      hosting_contributions: {
+        Row: {
+          id: string
+          app_idea_id: string
+          user_id: string | null
+          amount: number
+          stripe_payment_intent_id: string | null
+          status: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          app_idea_id: string
+          user_id?: string | null
+          amount: number
+          stripe_payment_intent_id?: string | null
+          status?: string
+          created_at?: string
+        }
+        Update: {
+          app_idea_id?: string
+          user_id?: string | null
+          amount?: number
+          stripe_payment_intent_id?: string | null
+          status?: string
         }
         Relationships: []
       }

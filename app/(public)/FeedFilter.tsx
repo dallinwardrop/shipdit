@@ -119,6 +119,23 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
             </div>
           )}
 
+          {/* Hosting meter for shipped apps */}
+          {idea.status === 'built' && idea.hosting_monthly_goal > 0 && (() => {
+            const hPct = progressPercent(idea.hosting_collected, idea.hosting_monthly_goal)
+            const hColor = hPct >= 50 ? '#006600' : hPct >= 25 ? '#886600' : '#cc0000'
+            return (
+              <div className="space-y-1">
+                <div className="text-xs flex justify-between" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                  <span>Hosting</span>
+                  <span style={{ color: hColor, fontWeight: 'bold' }}>{hPct}%</span>
+                </div>
+                <div className="win95-progress-track" style={{ height: 6 }}>
+                  <div className="win95-progress-fill" style={{ width: `${hPct}%`, background: hColor }} />
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Stats */}
           <div className="win95-sunken p-2 flex flex-wrap gap-3 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
             <span><span style={{ color: '#000080' }}>●</span> {idea.backer_count} backer{idea.backer_count !== 1 ? 's' : ''}</span>
