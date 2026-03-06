@@ -22,11 +22,13 @@ export async function POST(request: NextRequest) {
       amount,
       type = 'pledge',
       ref_code,
+      anonymous = false,
     } = body as {
       app_idea_id: string
       amount: number
       type?: PledgeType
       ref_code?: string
+      anonymous?: boolean
     }
 
     if (!app_idea_id) return NextResponse.json({ error: 'app_idea_id required.' }, { status: 400 })
@@ -44,22 +46,6 @@ export async function POST(request: NextRequest) {
     if (!idea) return NextResponse.json({ error: 'Idea not found.' }, { status: 404 })
     if (!PLEDGE_OPEN.includes(idea.status))
       return NextResponse.json({ error: 'This idea is not currently accepting pledges.' }, { status: 400 })
-
-    // Check for existing pledge from this user
-    const { data: existing } = await supabase
-      .from('pledges')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('app_idea_id', app_idea_id)
-      .in('status', ['pending', 'held'])
-      .single()
-
-    if (existing) {
-      return NextResponse.json(
-        { error: 'You already have an active pledge for this idea.' },
-        { status: 409 }
-      )
-    }
 
     // Get or create Stripe customer
     const { data: profile } = await admin
@@ -100,11 +86,12 @@ export async function POST(request: NextRequest) {
       app_idea_id,
       amount,
       type,
-      status: 'held',
+      status: 'pending',
       stripe_payment_intent_id: paymentIntent.id,
       stripe_customer_id: customerId ?? null,
       ref_code: ref_code ?? null,
       is_submitter_pledge: false,
+      anonymous,
     })
 
     if (pledgeError) {

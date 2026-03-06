@@ -6,10 +6,14 @@ import { formatDollars, progressPercent, daysUntil } from '@/lib/utils'
 import { PledgeBox, PriorityTag } from './PledgeBox'
 import type { FeatureItem } from '@/lib/supabase/types'
 
-type Backer = {
+type BackerRow = {
   amount: number
   type: string
+  user_id: string
+  anonymous: boolean
 }
+
+type Backer = BackerRow & { displayName: string }
 
 export default async function FundIdeaPage({
   params,
@@ -29,13 +33,31 @@ export default async function FundIdeaPage({
 
   const { data: backerRows } = await supabase
     .from('pledges')
-    .select('amount, type')
+    .select('amount, type, user_id, anonymous')
     .eq('app_idea_id', idea.id)
     .in('status', ['held', 'captured'])
     .order('amount', { ascending: false })
     .limit(20)
 
-  const backers = (backerRows ?? []) as Backer[]
+  const rows = (backerRows ?? []) as BackerRow[]
+
+  // Fetch names for non-anonymous backers
+  const namedIds = [...new Set(rows.filter((r) => !r.anonymous).map((r) => r.user_id))]
+  const nameMap: Record<string, string> = {}
+  if (namedIds.length > 0) {
+    const { data: userRows } = await supabase
+      .from('users')
+      .select('id, full_name')
+      .in('id', namedIds)
+    for (const u of userRows ?? []) {
+      nameMap[u.id] = (u.full_name as string | null)?.split(' ')[0] ?? 'Anonymous'
+    }
+  }
+
+  const backers: Backer[] = rows.map((r) => ({
+    ...r,
+    displayName: r.anonymous ? 'Anonymous' : (nameMap[r.user_id] ?? 'Anonymous'),
+  }))
 
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const days = daysUntil(idea.funding_deadline)
@@ -140,7 +162,7 @@ export default async function FundIdeaPage({
               <div className="p-3 space-y-1">
                 {backers.map((b, i) => (
                   <div key={i} className="win95-raised p-2 flex justify-between items-center text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                    <span>{i === 0 && '★ '}<strong>Anonymous</strong></span>
+                    <span>{i === 0 && '★ '}<strong>{b.displayName}</strong></span>
                     <span>{formatDollars(b.amount)}</span>
                   </div>
                 ))}

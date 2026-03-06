@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { NavAuth } from './NavAuth'
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -30,9 +31,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
           </Link>
         </div>
         <div className="ml-auto">
-          <Link href="/login" className="win95-btn text-xs">
-            Sign In
-          </Link>
+          <NavAuth />
         </div>
       </nav>
       <main className="p-4">{children}</main>

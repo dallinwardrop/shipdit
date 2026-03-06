@@ -175,6 +175,7 @@ export type Database = {
           stripe_customer_id: string | null
           ref_code: string | null
           is_submitter_pledge: boolean
+          anonymous: boolean
           captured_at: string | null
           refunded_at: string | null
           created_at: string
@@ -190,6 +191,7 @@ export type Database = {
           stripe_customer_id?: string | null
           ref_code?: string | null
           is_submitter_pledge?: boolean
+          anonymous?: boolean
           captured_at?: string | null
           refunded_at?: string | null
           created_at?: string
@@ -204,6 +206,7 @@ export type Database = {
           stripe_customer_id?: string | null
           ref_code?: string | null
           is_submitter_pledge?: boolean
+          anonymous?: boolean
           captured_at?: string | null
           refunded_at?: string | null
         }
