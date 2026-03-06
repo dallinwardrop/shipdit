@@ -1,7 +1,22 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+// Paths that must never trigger an auth redirect
+const BYPASS = ['/login', '/auth/callback', '/api/webhooks/stripe', '/_next', '/favicon']
+
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl
+
+  // Only enforce auth on /admin routes
+  if (!pathname.startsWith('/admin')) {
+    return NextResponse.next()
+  }
+
+  // Safety net: if somehow an excluded path matches, pass through
+  if (BYPASS.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next()
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -23,30 +38,36 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  let user = null
+  try {
+    const { data } = await supabase.auth.getUser()
+    user = data.user
+  } catch {
+    // On network/auth errors don't redirect — fail open so the page can handle it
+    return supabaseResponse
+  }
 
-  const pathname = request.nextUrl.pathname
+  if (!user) {
+    const loginUrl = new URL('/login', request.url)
+    loginUrl.searchParams.set('redirectTo', pathname)
+    return NextResponse.redirect(loginUrl)
+  }
 
-  // Protect /admin/* routes
-  if (pathname.startsWith('/admin')) {
-    if (!user) {
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirectTo', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
-
-    // Check admin status
+  let isAdmin = false
+  try {
     const { data: profile } = await supabase
       .from('users')
       .select('is_admin')
       .eq('id', user.id)
       .single()
+    isAdmin = profile?.is_admin ?? false
+  } catch {
+    // DB error — deny access but don't redirect loop
+    return new NextResponse('Forbidden', { status: 403 })
+  }
 
-    if (!profile?.is_admin) {
-      return new NextResponse('Forbidden', { status: 403 })
-    }
+  if (!isAdmin) {
+    return new NextResponse('Forbidden', { status: 403 })
   }
 
   return supabaseResponse
