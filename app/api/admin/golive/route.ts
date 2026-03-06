@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendIdeaLive } from '@/lib/emails'
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,6 +29,40 @@ export async function POST(request: NextRequest) {
       .eq('id', idea_id)
 
     if (error) throw error
+
+    // Email all existing pledgers (non-blocking)
+    const { data: idea } = await admin
+      .from('app_ideas')
+      .select('title, slug, build_price')
+      .eq('id', idea_id)
+      .single()
+
+    if (idea?.slug && idea.build_price) {
+      const { data: pledges } = await admin
+        .from('pledges')
+        .select('user_id')
+        .eq('app_idea_id', idea_id)
+        .in('status', ['pending', 'held'])
+
+      if (pledges && pledges.length > 0) {
+        const userIds = [...new Set(pledges.map((p) => p.user_id))]
+        const { data: pledgers } = await admin
+          .from('users')
+          .select('email')
+          .in('id', userIds)
+
+        const emailPayload = {
+          appTitle: idea.title,
+          slug: idea.slug,
+          buildPrice: idea.build_price,
+          fundingDeadline: deadline.toISOString(),
+        }
+        pledgers?.forEach((u) => {
+          if (u.email) sendIdeaLive(u.email, emailPayload).catch(console.error)
+        })
+      }
+    }
+
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('admin/golive error:', err)

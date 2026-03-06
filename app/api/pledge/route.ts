@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { stripe } from '@/lib/stripe'
 import type { PledgeType } from '@/lib/supabase/types'
+import { sendPledgeConfirmation } from '@/lib/emails'
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest) {
     // Verify the idea exists and is open for pledges (use admin to bypass RLS)
     const { data: idea } = await admin
       .from('app_ideas')
-      .select('id, title, slug, status')
+      .select('id, title, slug, status, funding_deadline')
       .eq('id', app_idea_id)
       .single()
 
@@ -102,6 +103,16 @@ export async function POST(request: NextRequest) {
         error: 'Failed to record pledge.',
         detail: pledgeError.message ?? String(pledgeError),
       }, { status: 500 })
+    }
+
+    // Send confirmation email (non-blocking)
+    if (profile?.email && idea.slug) {
+      sendPledgeConfirmation(profile.email, {
+        appTitle: idea.title,
+        amount,
+        fundingDeadline: idea.funding_deadline ?? new Date(Date.now() + 120 * 86400_000).toISOString(),
+        slug: idea.slug,
+      }).catch(console.error)
     }
 
     return NextResponse.json({

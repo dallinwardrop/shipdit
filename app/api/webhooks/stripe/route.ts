@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type Stripe from 'stripe'
+import { sendGoalHit, sendRefundIssued } from '@/lib/emails'
 
 export const dynamic = 'force-dynamic'
 
@@ -38,10 +39,25 @@ export async function POST(request: NextRequest) {
 
     case 'payment_intent.succeeded': {
       const pi = event.data.object as Stripe.PaymentIntent
-      await admin
+
+      // Update pledge status
+      const { data: updatedPledges } = await admin
         .from('pledges')
         .update({ status: 'captured', captured_at: new Date().toISOString() })
         .eq('stripe_payment_intent_id', pi.id)
+        .select('user_id, amount, app_idea_id')
+
+      // Email the backer — their card was just charged
+      const pledge = updatedPledges?.[0]
+      if (pledge) {
+        const [{ data: idea }, { data: backer }] = await Promise.all([
+          admin.from('app_ideas').select('title').eq('id', pledge.app_idea_id).single(),
+          admin.from('users').select('email').eq('id', pledge.user_id).single(),
+        ])
+        if (idea && backer?.email) {
+          sendGoalHit(backer.email, { appTitle: idea.title, amount: pledge.amount }).catch(console.error)
+        }
+      }
       break
     }
 
@@ -68,10 +84,22 @@ export async function POST(request: NextRequest) {
     case 'charge.refunded': {
       const charge = event.data.object as Stripe.Charge
       if (charge.payment_intent) {
-        await admin
+        const { data: refundedPledges } = await admin
           .from('pledges')
           .update({ status: 'refunded', refunded_at: new Date().toISOString() })
           .eq('stripe_payment_intent_id', charge.payment_intent as string)
+          .select('user_id, amount, app_idea_id')
+
+        const pledge = refundedPledges?.[0]
+        if (pledge) {
+          const [{ data: idea }, { data: backer }] = await Promise.all([
+            admin.from('app_ideas').select('title').eq('id', pledge.app_idea_id).single(),
+            admin.from('users').select('email').eq('id', pledge.user_id).single(),
+          ])
+          if (idea && backer?.email) {
+            sendRefundIssued(backer.email, { appTitle: idea.title, amount: pledge.amount }).catch(console.error)
+          }
+        }
       }
       break
     }

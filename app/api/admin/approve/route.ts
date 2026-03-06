@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendIdeaApproved } from '@/lib/emails'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +22,25 @@ export async function POST(request: NextRequest) {
       .eq('id', idea_id)
 
     if (error) throw error
+
+    // Email the submitter (non-blocking)
+    const { data: idea } = await admin
+      .from('app_ideas')
+      .select('title, slug, submitter_id')
+      .eq('id', idea_id)
+      .single()
+
+    if (idea?.slug) {
+      const { data: submitter } = await admin
+        .from('users')
+        .select('email')
+        .eq('id', idea.submitter_id)
+        .single()
+      if (submitter?.email) {
+        sendIdeaApproved(submitter.email, { appTitle: idea.title, slug: idea.slug }).catch(console.error)
+      }
+    }
+
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('admin/approve error:', err)

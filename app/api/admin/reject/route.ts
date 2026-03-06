@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { sendIdeaRejected } from '@/lib/emails'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,6 +22,28 @@ export async function POST(request: NextRequest) {
       .eq('id', idea_id)
 
     if (error) throw error
+
+    // Email the submitter (non-blocking)
+    const { data: idea } = await admin
+      .from('app_ideas')
+      .select('title, submitter_id')
+      .eq('id', idea_id)
+      .single()
+
+    if (idea) {
+      const { data: submitter } = await admin
+        .from('users')
+        .select('email')
+        .eq('id', idea.submitter_id)
+        .single()
+      if (submitter?.email) {
+        sendIdeaRejected(submitter.email, {
+          appTitle: idea.title,
+          rejectionReason: rejection_reason ?? null,
+        }).catch(console.error)
+      }
+    }
+
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('admin/reject error:', err)
