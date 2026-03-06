@@ -339,6 +339,21 @@ export function AdminDashboard({
                           </div>
                         )}
 
+                        {/* LIVE + goal hit: Capture All */}
+                        {status === 'live' && idea.build_price != null && idea.amount_raised >= idea.build_price && (
+                          <button
+                            onClick={() => {
+                              if (confirm(`Capture all pledges for "${idea.title}"? This will charge all backers.`)) {
+                                act('/api/capture', { idea_id: idea.id }, idea.id)
+                              }
+                            }}
+                            disabled={isLoading}
+                            style={{ ...btnNavy, width: '100%', padding: '4px', background: '#006000', borderColor: '#004000 #80ff80 #80ff80 #004000' }}
+                          >
+                            💰 CAPTURE ALL PLEDGES
+                          </button>
+                        )}
+
                         {/* PRICED: Go Live */}
                         {status === 'priced' && (
                           <button
@@ -376,7 +391,12 @@ export function AdminDashboard({
 
   // ── Ledger panel ──────────────────────────────────────────────────────────
 
-  const fundedIdeas = ideas.filter((i) => i.status === 'funded')
+  // Show capture section for live ideas that have hit their goal, plus any already-funded ideas
+  const fundedIdeas = ideas.filter(
+    (i) =>
+      (i.status === 'live' && i.build_price != null && i.amount_raised >= i.build_price) ||
+      i.status === 'funded'
+  )
   const filteredPledges =
     pledgeFilter === 'all' ? pledges : pledges.filter((p) => p.status === pledgeFilter)
 
@@ -400,7 +420,11 @@ export function AdminDashboard({
                   <span style={{ marginLeft: 8, opacity: 0.6 }}>{formatDollars(idea.amount_raised)} raised</span>
                 </div>
                 <button
-                  onClick={() => act('/api/capture', { app_idea_id: idea.id }, idea.id)}
+                  onClick={() => {
+                    if (confirm(`Capture all pledges for "${idea.title}"? This will charge all backers.`)) {
+                      act('/api/capture', { idea_id: idea.id }, idea.id)
+                    }
+                  }}
                   disabled={loadingId === idea.id}
                   style={{ ...btnNavy, padding: '4px 12px' }}
                 >

@@ -30,10 +30,76 @@ export async function POST(request: NextRequest) {
     case 'payment_intent.amount_capturable_updated': {
       // Payment method attached and authorized — mark pledge as held
       const pi = event.data.object as Stripe.PaymentIntent
-      await admin
+      const { data: heldPledges } = await admin
         .from('pledges')
         .update({ status: 'held', stripe_customer_id: pi.customer as string | null })
         .eq('stripe_payment_intent_id', pi.id)
+        .select('app_idea_id, amount')
+
+      // Auto-capture if this pledge pushed the idea over its funding goal
+      const pledge = heldPledges?.[0]
+      if (pledge) {
+        const { data: idea } = await admin
+          .from('app_ideas')
+          .select('id, title, slug, build_price, amount_raised, status')
+          .eq('id', pledge.app_idea_id)
+          .single()
+
+        if (
+          idea &&
+          idea.status === 'live' &&
+          idea.build_price != null &&
+          idea.amount_raised >= idea.build_price
+        ) {
+          // Atomically claim the funding transition (only one webhook wins)
+          const { data: claimed } = await admin
+            .from('app_ideas')
+            .update({ status: 'funded' })
+            .eq('id', idea.id)
+            .eq('status', 'live') // guard: only proceeds if still live
+            .select('id')
+
+          if (claimed && claimed.length > 0) {
+            // This is the winning webhook — capture all held pledges
+            const { data: allHeld } = await admin
+              .from('pledges')
+              .select('id, amount, stripe_payment_intent_id, user_id')
+              .eq('app_idea_id', idea.id)
+              .eq('status', 'held')
+
+            await Promise.all(
+              (allHeld ?? []).map(async (p) => {
+                try {
+                  await stripe.paymentIntents.capture(p.stripe_payment_intent_id)
+                  await admin
+                    .from('pledges')
+                    .update({ status: 'captured', captured_at: new Date().toISOString() })
+                    .eq('id', p.id)
+                } catch (err) {
+                  console.error(`Auto-capture failed for pledge ${p.id}:`, err)
+                  await admin.from('pledges').update({ status: 'failed' }).eq('id', p.id)
+                }
+              })
+            )
+
+            // Email all backers
+            const backerIds = (allHeld ?? []).map((p) => p.user_id)
+            if (backerIds.length > 0) {
+              const { data: backers } = await admin
+                .from('users')
+                .select('id, email')
+                .in('id', backerIds)
+
+              ;(allHeld ?? []).forEach((p) => {
+                const backer = backers?.find((b) => b.id === p.user_id)
+                if (backer?.email) {
+                  sendGoalHit(backer.email, { appTitle: idea.title, amount: p.amount }).catch(console.error)
+                }
+              })
+            }
+          }
+        }
+      }
       break
     }
 
