@@ -81,6 +81,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Insert pledge record
+    // Note: anonymous column requires: ALTER TABLE pledges ADD COLUMN anonymous boolean DEFAULT false;
     const { error: pledgeError } = await admin.from('pledges').insert({
       user_id: user.id,
       app_idea_id,
@@ -91,13 +92,16 @@ export async function POST(request: NextRequest) {
       stripe_customer_id: customerId ?? null,
       ref_code: ref_code ?? null,
       is_submitter_pledge: false,
-      anonymous,
+      ...(anonymous ? { anonymous: true } : {}),
     })
 
     if (pledgeError) {
-      console.error('Pledge insert error:', pledgeError)
+      console.error('Pledge insert error:', JSON.stringify(pledgeError, null, 2))
       await stripe.paymentIntents.cancel(paymentIntent.id)
-      return NextResponse.json({ error: 'Failed to record pledge.' }, { status: 500 })
+      return NextResponse.json({
+        error: 'Failed to record pledge.',
+        detail: pledgeError.message ?? String(pledgeError),
+      }, { status: 500 })
     }
 
     return NextResponse.json({
