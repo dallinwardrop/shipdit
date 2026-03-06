@@ -41,15 +41,10 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
   const days = daysUntil(idea.funding_deadline)
   const isExpiringSoon = days !== null && days <= 14 && days >= 0
   const badge = STATUS_BADGE[idea.status]
-  const PRE_LIVE   = ['submitted', 'under_review', 'awaiting_price']
-  const LIVE_PRICED = ['live', 'priced']
-  const isPreLive   = PRE_LIVE.includes(idea.status)
-  const isLivePriced = LIVE_PRICED.includes(idea.status)
+  const isPreLive = ['submitted', 'under_review', 'awaiting_price'].includes(idea.status)
   const appLabel = idea.app_number
-    ? `App #${String(idea.app_number).padStart(3, '0')}`
+    ? `#${String(idea.app_number).padStart(3, '0')}`
     : null
-  // Title bar text: "App #001" when live/priced+app_number, otherwise the idea title
-  const titleBarText = (isLivePriced && appLabel) ? appLabel : idea.title
 
   return (
     <Link href={`/fund/${idea.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
@@ -57,7 +52,21 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 
         {/* Title bar */}
         <div className="win95-title-bar">
-          <span className="font-vt323 text-lg truncate flex-1">{titleBarText}</span>
+          <span className="font-vt323 text-lg truncate flex-1">{idea.title}</span>
+          {appLabel && (
+            <span
+              className="text-xs flex-shrink-0 mx-1 px-1"
+              style={{
+                fontFamily: 'Share Tech Mono, monospace',
+                color: '#404040',
+                background: '#e0e0e0',
+                border: '1px solid #808080',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              {appLabel}
+            </span>
+          )}
           {badge && (
             <span
               className="text-xs flex-shrink-0 mx-1 px-1"
@@ -83,18 +92,12 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 
         {/* Body */}
         <div className="p-3 space-y-2">
-          {/* Subtitle: working title label in relevant states */}
-          {isPreLive ? (
-            // Pre-live: title is shown in title bar, just add the label
+          {/* Subtitle: working title label for pre-live ideas */}
+          {isPreLive && (
             <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
               working title
             </div>
-          ) : (isLivePriced && appLabel) ? (
-            // Live/priced with app number: show idea title as "working title" subtitle
-            <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
-              {idea.title} <span style={{ opacity: 0.7 }}>(working title)</span>
-            </div>
-          ) : null}
+          )}
           <p className="text-sm leading-snug" style={{ color: '#000' }}>
             {truncate(idea.goal_description, 100)}
           </p>
