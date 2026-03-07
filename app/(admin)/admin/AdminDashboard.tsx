@@ -58,7 +58,6 @@ export type HostingRow = {
 // ── Pipeline columns ──────────────────────────────────────────────────────────
 
 const PIPELINE_COLS = [
-  { status: 'submitted',      label: 'Submitted' },
   { status: 'under_review',   label: 'Under Review' },
   { status: 'awaiting_price', label: 'Awaiting Price' },
   { status: 'priced',         label: 'Priced' },
@@ -202,7 +201,7 @@ export function AdminDashboard({
         ))}
       </div>
       <div className="p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', borderTop: '1px solid #808080', color: '#404040' }}>
-        {ideas.filter(i => i.status === 'submitted').length} awaiting review
+        {ideas.filter(i => ['submitted', 'under_review'].includes(i.status)).length} awaiting review
       </div>
     </div>
   )
@@ -281,8 +280,8 @@ export function AdminDashboard({
                           </div>
                         )}
 
-                        {/* SUBMITTED: Approve / Reject */}
-                        {status === 'submitted' && (
+                        {/* UNDER REVIEW: Approve / Reject */}
+                        {['submitted', 'under_review'].includes(status) && (
                           <div className="space-y-1">
                             <div style={{ display: 'flex', gap: 4 }}>
                               <button
@@ -331,8 +330,8 @@ export function AdminDashboard({
                           </div>
                         )}
 
-                        {/* UNDER REVIEW: Set Price */}
-                        {status === 'under_review' && (
+                        {/* AWAITING PRICE: Set Price */}
+                        {status === 'awaiting_price' && (
                           <div className="space-y-1">
                             <button
                               onClick={() => setPriceOpen((p) => ({ ...p, [idea.id]: !p[idea.id] }))}

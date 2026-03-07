@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const { error } = await admin
       .from('app_ideas')
-      .update({ status: 'under_review', approved_at: new Date().toISOString() })
+      .update({ status: 'awaiting_price', approved_at: new Date().toISOString() })
       .eq('id', idea_id)
 
     if (error) throw error

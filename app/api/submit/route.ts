@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         similar_apps: similar_apps?.trim() || null,
         platform_preference: platform_preference || 'web',
         submitter_pledge_amount,
-        status: 'submitted',
+        status: 'under_review',
       })
       .select('id, slug')
       .single()

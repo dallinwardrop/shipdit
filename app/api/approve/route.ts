@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
         admin_notes: admin_notes ?? null,
       }
 
-      if (nextStatus === 'under_review') {
+      if (nextStatus === 'awaiting_price' || nextStatus === 'under_review') {
         updatePayload.approved_at = new Date().toISOString()
       }
 
@@ -126,7 +126,7 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (submitter?.email) {
-        if (nextStatus === 'under_review') {
+        if (nextStatus === 'awaiting_price' || nextStatus === 'under_review') {
           await sendEmail({
             to: submitter.email,
             type: 'idea_approved',
