@@ -27,7 +27,7 @@ export default async function SharePage({
   const authClient = await createClient()
   const { data: { user } } = await authClient.auth.getUser()
   if (!user || user.id !== idea.submitter_id) {
-    redirect(`/fund/${idea.slug}`)
+    redirect(`/fund/${slug}`)
   }
 
   // Count backers who came via the submitter's referral link
