@@ -11,9 +11,36 @@ async function getAllIdeas(): Promise<IdeaWithTopDonor[]> {
     .from('app_ideas')
     .select('*')
     .in('status', ['submitted', 'under_review', 'awaiting_price', 'priced', 'live', 'funded', 'building', 'in_review', 'built'])
-    .order('amount_raised', { ascending: false })
 
   if (error || !ideas) return []
+
+  // Bulk-fetch pledge activity from the last 7 days for momentum scoring
+  const now = new Date()
+  const since7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const since24h = new Date(now.getTime() - 24 * 60 * 60 * 1000).toISOString()
+
+  const { data: recentPledges } = await supabase
+    .from('pledges')
+    .select('app_idea_id, created_at')
+    .in('app_idea_id', ideas.map((i) => i.id))
+    .eq('type', 'pledge')
+    .in('status', ['held', 'captured'])
+    .gte('created_at', since7d)
+
+  // Group counts by idea
+  const pledgeMap: Record<string, { last24h: number; last7d: number }> = {}
+  for (const p of recentPledges ?? []) {
+    if (!pledgeMap[p.app_idea_id]) pledgeMap[p.app_idea_id] = { last24h: 0, last7d: 0 }
+    pledgeMap[p.app_idea_id].last7d++
+    if (p.created_at >= since24h) pledgeMap[p.app_idea_id].last24h++
+  }
+
+  // Momentum score: ((24h * 3) + 7d) / (hoursOld + 2)^1.2
+  function momentumScore(idea: (typeof ideas)[0]): number {
+    const c = pledgeMap[idea.id] ?? { last24h: 0, last7d: 0 }
+    const hoursOld = (now.getTime() - new Date(idea.created_at).getTime()) / 3_600_000
+    return (c.last24h * 3 + c.last7d) / Math.pow(hoursOld + 2, 1.2)
+  }
 
   const enriched = await Promise.all(
     ideas.map(async (idea) => {
@@ -33,6 +60,13 @@ async function getAllIdeas(): Promise<IdeaWithTopDonor[]> {
       return { ...idea, top_donor_name }
     })
   )
+
+  // Sort by momentum desc, fall back to amount_raised for ties
+  enriched.sort((a, b) => {
+    const diff = momentumScore(b) - momentumScore(a)
+    if (diff !== 0) return diff
+    return (b.amount_raised ?? 0) - (a.amount_raised ?? 0)
+  })
 
   return enriched
 }
