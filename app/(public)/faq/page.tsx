@@ -84,6 +84,10 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
         q: 'Can I pledge to the same idea multiple times?',
         a: 'Yes — you can back an idea at multiple tiers or pledge additional amounts anytime before the goal is hit.',
       },
+      {
+        q: 'What\'s the difference between a web app and a native mobile app?',
+        a: 'A web app runs in any browser — on phones, tablets, and desktops — with no App Store download required. It\'s the most affordable option and works on all devices. Native iOS or Android apps require separate development, App Store approval, and typically cost 5x more. Most ideas work great as web apps. If you\'re unsure which platform to pick, choose Web — we\'ll discuss the best fit during review.',
+      },
     ],
   },
   {

@@ -1,5 +1,27 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { NavAuth } from './NavAuth'
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://shipdit.co'
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Shipdit — Community-Funded Apps',
+    template: '%s — Shipdit',
+  },
+  description: 'Pledge to fund app ideas. Hit the goal, I build it in 72 hours, free for everyone forever.',
+  metadataBase: new URL(APP_URL),
+  openGraph: {
+    siteName: 'Shipdit',
+    type: 'website',
+    images: [{ url: '/og-default.png', width: 1200, height: 630, alt: 'Shipdit — Community-Funded Apps' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@shipdit',
+    images: ['/og-default.png'],
+  },
+}
 
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (

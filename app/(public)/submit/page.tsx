@@ -296,6 +296,15 @@ export default function SubmitPage() {
                   </option>
                 ))}
               </select>
+              {['ios', 'android', 'ios+android'].includes(form.platform_preference) && (
+                <div
+                  className="win95-sunken p-2 text-xs space-y-1"
+                  style={{ color: '#804000', borderColor: '#886600 #cc8800 #cc8800 #886600', background: '#fffbe8' }}
+                >
+                  <p>📱 <strong>Heads up:</strong> native mobile apps (iOS/Android) are typically 5x the cost of web apps and take longer to build. Most ideas work great as a web app that works on mobile browsers — often at 1/4 the price.</p>
+                  <p>Not sure? Pick <strong>Web</strong> and we&apos;ll discuss during review.</p>
+                </div>
+              )}
             </FieldGroup>
 
             {/* 7. Email */}

@@ -1,0 +1,9 @@
+Place a real OG image at /public/og-default.png
+
+Recommended specs:
+  - Size: 1200 x 630 px
+  - Format: PNG
+  - Content: Shipdit logo/wordmark, tagline, Win95 aesthetic
+  - Tagline: "Community-funded apps, free for everyone."
+
+Until this file exists, social share previews will show no image.

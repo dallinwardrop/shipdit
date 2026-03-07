@@ -1,10 +1,42 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatDollars, progressPercent } from '@/lib/utils'
 import { HostingContribute } from './HostingContribute'
 import { EmbedWidget } from './EmbedWidget'
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params
+  const admin = createAdminClient()
+  const { data: idea } = await admin
+    .from('app_ideas')
+    .select('title')
+    .eq('slug', slug)
+    .eq('status', 'built')
+    .single()
+
+  if (!idea) return {}
+
+  const description = `Help keep ${idea.title} free for everyone by contributing to monthly hosting costs.`
+  return {
+    title: `${idea.title} — Support Hosting on Shipdit`,
+    description,
+    openGraph: {
+      title: `${idea.title} — Support Hosting on Shipdit`,
+      description,
+      images: [{ url: '/og-default.png', width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${idea.title} — Support Hosting on Shipdit`,
+      description,
+    },
+  }
+}
 
 export default async function HostingPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params

@@ -1,11 +1,42 @@
 export const dynamic = 'force-dynamic'
 
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { formatDollars, progressPercent, hoursUntil, formatTimeLeft } from '@/lib/utils'
 import { PledgeBox, PriorityTag } from './PledgeBox'
 import type { FeatureItem } from '@/lib/supabase/types'
+
+export async function generateMetadata(
+  { params }: { params: Promise<{ slug: string }> }
+): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = createAdminClient()
+  const { data: idea } = await supabase
+    .from('app_ideas')
+    .select('title, goal_description')
+    .eq('slug', slug)
+    .single()
+
+  if (!idea) return {}
+
+  const description = (idea.goal_description ?? '').slice(0, 160)
+  return {
+    title: `${idea.title} — Fund This App on Shipdit`,
+    description,
+    openGraph: {
+      title: `${idea.title} — Fund This App on Shipdit`,
+      description,
+      images: [{ url: '/og-default.png', width: 1200, height: 630 }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${idea.title} — Fund This App on Shipdit`,
+      description,
+    },
+  }
+}
 
 type BackerRow = {
   amount: number
