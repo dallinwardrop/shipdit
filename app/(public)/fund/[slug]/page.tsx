@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { formatDollars, progressPercent, daysUntil } from '@/lib/utils'
+import { formatDollars, progressPercent, hoursUntil, formatTimeLeft } from '@/lib/utils'
 import { PledgeBox, PriorityTag } from './PledgeBox'
 import type { FeatureItem } from '@/lib/supabase/types'
 
@@ -60,7 +60,7 @@ export default async function FundIdeaPage({
   }))
 
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
-  const days = daysUntil(idea.funding_deadline)
+  const hours = hoursUntil(idea.funding_deadline)
   const features = (idea.features ?? []) as FeatureItem[]
   const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live']
   const isPledgeOpen = PLEDGE_OPEN.includes(idea.status)
@@ -167,10 +167,10 @@ export default async function FundIdeaPage({
                   <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>Watchers</div>
                 </div>
                 <div className="win95-raised p-2 text-center">
-                  <div className="font-vt323 text-3xl" style={{ color: idea.status === 'built' ? '#300060' : days !== null && days <= 7 ? 'darkred' : '#000080' }}>
-                    {idea.status === 'built' ? 'SHIPD' : days === null ? '∞' : days <= 0 ? 'ENDED' : `${days}d`}
+                  <div className="font-vt323 text-3xl" style={{ color: idea.status === 'built' ? '#300060' : hours !== null && hours <= 24 ? 'darkred' : '#000080' }}>
+                    {idea.status === 'built' ? 'SHIPD' : formatTimeLeft(hours)}
                   </div>
-                  <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>Days Left</div>
+                  <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>Time Left</div>
                 </div>
               </div>
             </div>

@@ -53,6 +53,27 @@ export function daysUntil(deadline: string | null): number | null {
 }
 
 /**
+ * Return number of whole hours remaining until a deadline (negative = overdue).
+ */
+export function hoursUntil(deadline: string | null): number | null {
+  if (!deadline) return null
+  const now = Date.now()
+  const end = new Date(deadline).getTime()
+  return Math.ceil((end - now) / (1000 * 60 * 60))
+}
+
+/**
+ * Format hours remaining as a compact string: "72h", "48h", "2d", etc.
+ * Uses hours for ≤48h, days for >48h.
+ */
+export function formatTimeLeft(hours: number | null): string {
+  if (hours === null) return '∞'
+  if (hours <= 0) return 'ENDED'
+  if (hours <= 48) return `${hours}h`
+  return `${Math.ceil(hours / 24)}d`
+}
+
+/**
  * Clamp a progress value between 0 and 100.
  */
 export function progressPercent(raised: number, goal: number): number {

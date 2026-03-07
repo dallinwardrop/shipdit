@@ -164,7 +164,7 @@ export default function SubmitPage() {
           </h1>
           <p className="text-xs mb-4" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
             Your idea enters a review queue. Once approved and priced, it goes live for community
-            funding. Your pledge is held — never charged unless the goal is hit within 7 days.
+            funding. Your pledge is held — never charged unless the goal is hit within 72 hours of going live.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -345,7 +345,7 @@ export default function SubmitPage() {
                   </p>
                   <p>Basic apps (2–3 features) typically start at $1,000.</p>
                   <p>
-                    Your pledge is 100% refunded if the app doesn&apos;t reach its goal within 7 days.
+                    Your pledge is 100% refunded if the app doesn&apos;t reach its goal within 72 hours of going live.
                     You are <strong>never charged until the goal is hit.</strong>
                   </p>
                 </div>
@@ -380,13 +380,14 @@ export default function SubmitPage() {
         </div>
       </div>
 
-      {/* 7-day urgency callout */}
+      {/* 72-hour urgency callout */}
       <div className="win95-window">
         <div className="win95-title-bar" style={{ background: '#804000' }}>
-          <span className="font-vt323 text-lg">⚡ Once approved: 7 days to fund it</span>
+          <span className="font-vt323 text-lg">⚡ Once approved: 72 hours to fund it</span>
         </div>
-        <div className="p-3 text-sm space-y-1" style={{ fontFamily: 'Share Tech Mono, monospace', background: '#fff8e8' }}>
-          <p>Once approved, your idea goes live for <strong>7 days</strong>. Share it everywhere. Make TikToks. If it funds, I build it. If not, no one gets charged.</p>
+        <div className="p-3 text-sm space-y-2" style={{ fontFamily: 'Share Tech Mono, monospace', background: '#fff8e8' }}>
+          <p>Ideas are reviewed within <strong>2–3 hours</strong> of submission. Once approved and live, you have <strong>72 hours</strong> to hit the funding goal.</p>
+          <p>Share it everywhere. Make TikToks. If it funds, I build it. If not, no one gets charged.</p>
         </div>
       </div>
 
@@ -398,7 +399,7 @@ export default function SubmitPage() {
         <div className="p-3 text-xs space-y-1" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
           <p>✓ Your card is authorized (held) — not charged — when you submit.</p>
           <p>✓ Funds are only captured when the full goal is reached.</p>
-          <p>✓ If the goal isn&apos;t hit within 7 days, your hold is fully released.</p>
+          <p>✓ If the goal isn&apos;t hit within 72 hours of going live, your hold is fully released.</p>
           <p>✓ Once built, the app is free for the entire community forever.</p>
         </div>
       </div>

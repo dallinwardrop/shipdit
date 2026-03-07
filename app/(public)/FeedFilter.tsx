@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { formatDollars, progressPercent, daysUntil, truncate } from '@/lib/utils'
+import { formatDollars, progressPercent, hoursUntil, formatTimeLeft, truncate } from '@/lib/utils'
 import type { Database } from '@/lib/supabase/types'
 
 type AppIdea = Database['public']['Tables']['app_ideas']['Row']
@@ -38,8 +38,8 @@ const FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = 
 
 function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
-  const days = daysUntil(idea.funding_deadline)
-  const isExpiringSoon = days !== null && days <= 3 && days >= 0
+  const hours = hoursUntil(idea.funding_deadline)
+  const isExpiringSoon = hours !== null && hours <= 24 && hours >= 0
   const badge = STATUS_BADGE[idea.status]
   const isPreLive = ['submitted', 'under_review', 'awaiting_price'].includes(idea.status)
   const appLabel = idea.app_number
@@ -172,9 +172,9 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
             <span><span style={{ color: '#808080' }}>○</span> {idea.watcher_count} watcher{idea.watcher_count !== 1 ? 's' : ''}</span>
             {idea.status === 'built' ? (
               <span style={{ color: '#300060', fontWeight: 'bold' }}>🚀 SHIPD</span>
-            ) : days !== null && (
+            ) : hours !== null && (
               <span style={{ color: isExpiringSoon ? 'darkred' : 'inherit' }}>
-                {days > 0 ? `${days}d left` : days === 0 ? 'LAST DAY' : 'EXPIRED'}
+                {hours > 0 ? `${formatTimeLeft(hours)} left` : 'EXPIRED'}
               </span>
             )}
             {idea.top_donor_name && (

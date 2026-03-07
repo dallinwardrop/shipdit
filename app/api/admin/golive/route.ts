@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
     if (!idea_id) return NextResponse.json({ error: 'idea_id required.' }, { status: 400 })
 
     const now = new Date()
-    const deadline = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    const deadline = new Date(now.getTime() + 72 * 60 * 60 * 1000)
 
     const { error } = await admin
       .from('app_ideas')

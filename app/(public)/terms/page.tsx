@@ -11,9 +11,9 @@ const SECTIONS = [
   },
   {
     title: '2. Pledge Hold, Capture, and Refund Policy',
-    body: `When you pledge to fund an app idea, your payment method is authorized (held) but not immediately charged. Your card is only captured (charged) if and when the full funding goal is reached within the 7-day funding window.
+    body: `When you pledge to fund an app idea, your payment method is authorized (held) but not immediately charged. Your card is only captured (charged) if and when the full funding goal is reached within the 72-hour funding window. The 72-hour countdown begins when the idea is approved and goes live — not when it is submitted. Ideas are typically approved within 2–3 hours of submission.
 
-If the funding goal is not reached within 7 days, all authorization holds are released and you are not charged. If a project is cancelled or rejected after you have pledged, your hold will be released within a reasonable timeframe, typically 1–5 business days depending on your card issuer.
+If the funding goal is not reached within 72 hours of going live, all authorization holds are released and you are not charged. If a project is cancelled or rejected after you have pledged, your hold will be released within a reasonable timeframe, typically 1–5 business days depending on your card issuer.
 
 Captured funds are non-refundable once a build has commenced, except at Shipdit's sole discretion. Hosting contributions made to keep live apps online are non-refundable once processed.`,
   },

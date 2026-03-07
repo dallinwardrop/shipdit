@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import { daysUntil } from '@/lib/utils'
+import { hoursUntil, formatTimeLeft } from '@/lib/utils'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
@@ -170,15 +170,15 @@ export function PledgeBox({
         <div className="font-vt323 text-2xl" style={{ color: '#004000' }}>✓ Pledge received!</div>
         <p style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12 }}>
           Your card is <strong>authorized but not charged</strong> until the funding goal is hit.
-          You&apos;ll get an email when this app is funded. 100% refunded if not funded in 7 days.
+          You&apos;ll get an email when this app is funded. 100% refunded if not funded within 72 hours of going live.
         </p>
       </div>
     )
   }
 
-  const days = daysUntil(fundingDeadline ?? null)
-  const isClosingSoon = days !== null && days <= 3 && days >= 0
-  const showUrgency = days !== null && days <= 7 && days >= 0
+  const hours = hoursUntil(fundingDeadline ?? null)
+  const isClosingSoon = hours !== null && hours <= 24 && hours >= 0
+  const showUrgency = hours !== null && hours >= 0
 
   return (
     <div className="space-y-3">
@@ -194,8 +194,8 @@ export function PledgeBox({
           }}
         >
           {isClosingSoon
-            ? `⚠️ Closing soon! ${days === 0 ? 'Last day' : `${days} day${days !== 1 ? 's' : ''} left`} to fund this.`
-            : `⚡ ${days} day${days !== 1 ? 's' : ''} left to fund this.`}
+            ? `⚠️ Closing soon! ${hours === 0 ? 'Less than 1 hour left' : `${formatTimeLeft(hours)} left`} to fund this.`
+            : `⚡ ${formatTimeLeft(hours)} left to fund this.`}
         </div>
       )}
       <div className="win95-window">
@@ -205,7 +205,7 @@ export function PledgeBox({
         <div className="p-3 space-y-3">
           <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
             Your card is <strong>authorized only</strong> — never charged until the funding goal
-            is hit. 100% refunded if not funded in 7 days.
+            is hit. 100% refunded if not funded within 72 hours of going live.
           </p>
 
           {/* Tier cards — hide once we have a clientSecret */}

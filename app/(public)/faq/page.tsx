@@ -12,7 +12,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'How does the funding process work?',
-        a: 'Submit an idea and pledge what you\'re willing to put in. Your idea goes into the public fund queue where anyone can back it. When total pledges hit the build price, all cards are charged and I start building. If the goal isn\'t hit in 7 days, every pledge is fully refunded.',
+        a: 'Submit an idea and pledge what you\'re willing to put in. Your idea goes into review — typically approved within 2–3 hours. Once approved and live, the community can back it. When total pledges hit the build price within 72 hours, all cards are charged and I start building. If the goal isn\'t hit, every pledge is fully refunded.',
       },
       {
         q: 'Who decides which ideas get built?',
@@ -29,7 +29,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'When does my card get charged?',
-        a: 'Your card is authorized (a hold is placed) when you pledge, but never charged until the funding goal is hit. If the goal isn\'t reached within 7 days, the hold is released and you owe nothing.',
+        a: 'Your card is authorized (a hold is placed) when you pledge, but never charged until the funding goal is hit. If the goal isn\'t reached within 72 hours of going live, the hold is released and you owe nothing.',
       },
       {
         q: 'Is my payment information safe?',
@@ -37,7 +37,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'How do refunds work?',
-        a: 'If an idea doesn\'t reach its funding goal within 7 days, all pledges are automatically refunded. No action needed on your part.',
+        a: 'If an idea doesn\'t reach its funding goal within 72 hours of going live, all pledges are automatically refunded. No action needed on your part.',
       },
       {
         q: 'What payment methods are accepted?',
@@ -54,11 +54,11 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'How long does funding stay open?',
-        a: '7 days from when the idea goes live in the queue. After that, unfunded ideas expire and all pledges are refunded.',
+        a: '72 hours from when the idea goes live in the queue. Ideas are typically approved within 2–3 hours of submission — the 72-hour countdown starts at approval, not submission. After that, unfunded ideas expire and all pledges are refunded.',
       },
       {
-        q: 'Why only 7 days?',
-        a: 'Urgency drives action. A 7-day window means you have one week to rally your community, make TikToks, and get it funded. If it doesn\'t hit the goal in 7 days, all holds are released and no one gets charged. You can always resubmit and try again.',
+        q: 'Why only 72 hours?',
+        a: 'Urgency drives action. A 72-hour window means you have three focused days to rally your community, make TikToks, and get it funded. The clock starts when your idea is approved — usually within a few hours of submission. If it doesn\'t hit the goal, all holds are released and no one gets charged. You can always resubmit and try again.',
       },
       {
         q: 'Who builds the apps?',

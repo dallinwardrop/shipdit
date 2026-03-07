@@ -110,7 +110,7 @@ export async function POST(request: NextRequest) {
       sendPledgeConfirmation(profile.email, {
         appTitle: idea.title,
         amount,
-        fundingDeadline: idea.funding_deadline ?? new Date(Date.now() + 7 * 86400_000).toISOString(),
+        fundingDeadline: idea.funding_deadline ?? new Date(Date.now() + 72 * 3600_000).toISOString(),
         slug: idea.slug,
       }).catch(console.error)
     }
