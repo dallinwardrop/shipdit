@@ -190,14 +190,18 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 // ── Filter bar + grid ─────────────────────────────────────────────────────────
 
 export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
-  const [active, setActive] = useState<FilterKey>('all')
+  const [active, setActive] = useState<FilterKey>('pledges')
+  const [search, setSearch] = useState('')
 
-  const filtered = active === 'all'
-    ? ideas
-    : ideas.filter((idea) => {
-        const f = FILTERS.find((f) => f.key === active)
-        return f?.statuses?.includes(idea.status) ?? true
-      })
+  const query = search.trim().toLowerCase()
+
+  const filtered = ideas
+    .filter((idea) => {
+      if (active === 'all') return true
+      const f = FILTERS.find((f) => f.key === active)
+      return f?.statuses?.includes(idea.status) ?? true
+    })
+    .filter((idea) => !query || idea.title.toLowerCase().includes(query))
 
   return (
     <div className="space-y-4">
@@ -206,7 +210,15 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
         <div className="win95-title-bar">
           <span className="font-vt323 text-lg">Filter</span>
         </div>
-        <div className="p-2 flex flex-wrap gap-2">
+        <div className="p-2 space-y-2">
+          <input
+            type="search"
+            className="win95-input w-full"
+            placeholder="Search ideas..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <div className="flex flex-wrap gap-2">
           {FILTERS.map((f) => (
             <button
               key={f.key}
@@ -226,6 +238,7 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
               )}
             </button>
           ))}
+          </div>
         </div>
       </div>
 
@@ -235,7 +248,9 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
           <div className="win95-title-bar">
             <span className="font-vt323 text-lg">No Results</span>
           </div>
-          <div className="p-6 text-center text-sm">Nothing in this category yet.</div>
+          <div className="p-6 text-center text-sm">
+            {query ? `No ideas matching "${search}".` : 'Nothing in this category yet.'}
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
