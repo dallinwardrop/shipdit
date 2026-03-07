@@ -401,6 +401,7 @@ export default function SubmitPage() {
           <p>✓ Funds are only captured when the full goal is reached.</p>
           <p>✓ If the goal isn&apos;t hit within 72 hours of going live, your hold is fully released.</p>
           <p>✓ Once built, the app is free for the entire community forever.</p>
+          <p>🏆 <strong>Backer Perks:</strong> The #1 backer names the app or hides an easter egg. The #2 backer gets whichever perk #1 didn&apos;t choose.</p>
           <p style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid #c0c0c0' }}>
             🛡️ <strong>Build Guarantee:</strong> Once funded, a working MVP is delivered within 72 hours — or everyone gets a full automatic refund.
           </p>

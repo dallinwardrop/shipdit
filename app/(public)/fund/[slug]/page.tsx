@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { createClient } from '@/lib/supabase/server'
 import { formatDollars, progressPercent, hoursUntil, formatTimeLeft } from '@/lib/utils'
 import { PledgeBox, PriorityTag } from './PledgeBox'
 import type { FeatureItem } from '@/lib/supabase/types'
@@ -22,6 +23,9 @@ export default async function FundIdeaPage({
 }) {
   const { slug } = await params
   const supabase = createAdminClient()
+  const serverClient = await createClient()
+  const { data: { user: currentUser } } = await serverClient.auth.getUser()
+  const currentUserId = currentUser?.id ?? null
 
   const { data: idea } = await supabase
     .from('app_ideas')
@@ -58,6 +62,20 @@ export default async function FundIdeaPage({
     ...r,
     displayName: r.anonymous ? 'Anonymous' : (nameMap[r.user_id] ?? 'Anonymous'),
   }))
+
+  // Aggregate pledges by user to find top 2 unique backers for perks
+  const userTotals: Record<string, { userId: string; total: number; displayName: string }> = {}
+  for (const b of backers) {
+    if (!userTotals[b.user_id]) {
+      userTotals[b.user_id] = { userId: b.user_id, total: 0, displayName: b.displayName }
+    }
+    userTotals[b.user_id].total += b.amount
+  }
+  const topBackers = Object.values(userTotals).sort((a, b) => b.total - a.total).slice(0, 2)
+  const perkSlots = [
+    { rank: 1, label: '#1 Backer', perk: 'Name the app or hide an easter egg — your choice', icon: '👑' },
+    { rank: 2, label: '#2 Backer', perk: 'Gets whichever perk #1 didn\'t choose', icon: '🥈' },
+  ]
 
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const hours = hoursUntil(idea.funding_deadline)
@@ -192,6 +210,59 @@ export default async function FundIdeaPage({
                   Once funding is complete and payments are captured, a working MVP is guaranteed to be delivered within <strong>72 hours</strong>.
                   If the app is not delivered in time, every backer receives a <strong>full automatic refund</strong> — no questions asked.
                 </p>
+              </div>
+            </div>
+          )}
+
+          {/* Backer Perks panel — show while still fundable or in progress */}
+          {!isBuilt && (
+            <div className="win95-window">
+              <div className="win95-title-bar" style={{ background: '#4b0082' }}>
+                <span className="font-vt323 text-lg">🏆 Backer Perks</span>
+              </div>
+              <div className="p-3 space-y-2">
+                <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                  The top 2 backers by total pledge amount each get a permanent perk built into the app.
+                </p>
+                {perkSlots.map((slot, i) => {
+                  const holder = topBackers[i]
+                  const isYou = holder && currentUserId && holder.userId === currentUserId
+                  const isOpen = !holder
+                  return (
+                    <div
+                      key={slot.rank}
+                      className="win95-raised p-2"
+                      style={{
+                        fontFamily: 'Share Tech Mono, monospace',
+                        fontSize: 12,
+                        borderColor: isYou ? '#4b0082 #c0a0ff #c0a0ff #4b0082' : undefined,
+                        background: isYou ? '#f8f0ff' : undefined,
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 2 }}>
+                        <span style={{ fontWeight: 'bold' }}>{slot.icon} {slot.label}</span>
+                        {holder ? (
+                          <span style={{ color: isYou ? '#4b0082' : '#000080' }}>
+                            {isYou ? '★ You' : holder.displayName} · {formatDollars(holder.total)}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#808080' }}>— open —</span>
+                        )}
+                      </div>
+                      <div style={{ color: '#404040' }}>{slot.perk}</div>
+                      {isYou && (
+                        <div style={{ marginTop: 4, color: '#4b0082', fontWeight: 'bold' }}>
+                          ✓ This perk is yours — we&apos;ll reach out after the build is funded.
+                        </div>
+                      )}
+                      {isOpen && (
+                        <div style={{ marginTop: 4, color: '#006600' }}>
+                          Back this app to claim this spot.
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
           )}

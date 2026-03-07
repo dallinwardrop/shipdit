@@ -87,6 +87,27 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
+    section: 'Backer Perks',
+    items: [
+      {
+        q: 'What perks do top backers get?',
+        a: 'The #1 backer (highest total pledge) gets to choose between two permanent perks: naming the official app, or hiding a secret easter egg somewhere inside it. The #2 backer gets whichever perk #1 didn\'t choose. These are built into the app and credited permanently.',
+      },
+      {
+        q: 'How does the naming perk work?',
+        a: 'After funding is complete, we\'ll reach out to the #1 backer (if they chose the naming perk) and ask for their preferred app name. You can name it whatever you want — no restrictions. The name goes live when the app ships.',
+      },
+      {
+        q: 'What is the easter egg perk?',
+        a: 'The easter egg holder gets to hide something inside the app — a secret screen, a hidden message, a surprise interaction, whatever you want (within reason). Only you know it\'s there. We\'ll work with you after funding to design it.',
+      },
+      {
+        q: 'When does my perk get locked in?',
+        a: 'Perks are held by whoever is #1 and #2 at the moment funding closes. If someone outpledges you before the 72-hour window ends, they take the spot. We\'ll contact perk holders after payments are captured.',
+      },
+    ],
+  },
+  {
     section: 'Feature Requests & Updates',
     items: [
       {

@@ -200,6 +200,14 @@ export function AdminDashboard({
           </button>
         ))}
       </div>
+      <div className="p-1" style={{ borderTop: '1px solid #808080' }}>
+        <a
+          href="/admin/hooks"
+          style={{ ...btnBase, display: 'block', width: '100%', textAlign: 'left', padding: '4px 8px', textDecoration: 'none', color: 'inherit' }}
+        >
+          🎵 TikTok Hooks
+        </a>
+      </div>
       <div className="p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', borderTop: '1px solid #808080', color: '#404040' }}>
         {ideas.filter(i => ['submitted', 'under_review'].includes(i.status)).length} awaiting review
       </div>
