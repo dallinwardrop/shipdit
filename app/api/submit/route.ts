@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { stripe } from '@/lib/stripe'
 import { sendEmail } from '@/lib/resend'
+import { sendNewIdeaAlert } from '@/lib/emails'
 import type { FeatureItem } from '@/lib/supabase/types'
 
 export async function POST(request: NextRequest) {
@@ -131,6 +132,16 @@ export async function POST(request: NextRequest) {
       console.error('Pledge insert error:', pledgeError)
       // Non-fatal — idea is saved, PI exists. Log but continue.
     }
+
+    // Notify admin of new submission (non-fatal)
+    sendNewIdeaAlert({
+      appTitle: title,
+      goalDescription: goal_description,
+      targetUser: target_user,
+      platform: platform_preference,
+      pledgeAmount: submitter_pledge_amount,
+      slug: idea.slug ?? '',
+    }).catch((err) => console.warn('[submit] Admin alert failed:', err))
 
     // Send confirmation email (non-fatal if it fails)
     try {

@@ -226,6 +226,43 @@ export async function sendHostingFunded(
   await send(to, `✓ Hosting funded for ${appTitle} — thank you!`, html)
 }
 
+export async function sendNewIdeaAlert({
+  appTitle,
+  goalDescription,
+  targetUser,
+  platform,
+  pledgeAmount,
+  slug,
+}: {
+  appTitle: string
+  goalDescription: string
+  targetUser: string
+  platform: string
+  pledgeAmount: number
+  slug: string
+}): Promise<void> {
+  const adminEmail = process.env.ADMIN_EMAIL ?? 'dallin@shipdit.co'
+  const html = layout(
+    `<h2 style="margin-top:0;color:#000080;">New idea submitted: ${appTitle}</h2>
+     <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:16px;">
+       <tr><td style="padding:6px 12px 6px 0;color:#606060;white-space:nowrap;vertical-align:top;">Title</td>
+           <td style="padding:6px 0;font-weight:bold;">${appTitle}</td></tr>
+       <tr style="background:#f8f8f8;"><td style="padding:6px 12px 6px 0;color:#606060;vertical-align:top;">Platform</td>
+           <td style="padding:6px 0;">${platform}</td></tr>
+       <tr><td style="padding:6px 12px 6px 0;color:#606060;vertical-align:top;">For</td>
+           <td style="padding:6px 0;">${targetUser}</td></tr>
+       <tr style="background:#f8f8f8;"><td style="padding:6px 12px 6px 0;color:#606060;vertical-align:top;">Pledge</td>
+           <td style="padding:6px 0;">${dollars(pledgeAmount)}</td></tr>
+     </table>
+     <p style="margin:0 0 8px;color:#606060;font-size:13px;">Description</p>
+     <p style="margin:0;padding:12px;background:#f4f4f4;border-left:3px solid #000080;font-size:14px;">
+       ${goalDescription}
+     </p>`,
+    { text: 'Review in admin →', url: `${APP_URL}/admin` }
+  )
+  await send(adminEmail, `New idea submitted: ${appTitle}`, html)
+}
+
 export async function sendRefundIssued(
   to: string,
   { appTitle, amount }: { appTitle: string; amount: number }
