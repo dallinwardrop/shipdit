@@ -243,7 +243,7 @@ export async function sendNewIdeaAlert({
   const text = `New Shipdit idea: ${appTitle} | ${dollars(pledgeAmount)} pledge | ${platform} for ${targetUser}`
   try {
     const { error } = await resend.emails.send({
-      from: FROM,
+      from: 'Shipdit <alerts@shipdit.co>',
       to: adminEmail,
       subject: text,
       text,
