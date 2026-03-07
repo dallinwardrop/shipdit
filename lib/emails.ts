@@ -275,6 +275,20 @@ export async function sendIdeaBuilt(
   return send(to, `🚀 ${appTitle} is live!`, html)
 }
 
+export async function sendPledgeReleased(
+  to: string,
+  { appTitle, slug }: { appTitle: string; slug: string | null }
+): Promise<string | null> {
+  const html = layout(
+    `<h2 style="margin-top:0;color:#000080;">Your pledge has been released</h2>
+     <p>Your pledge toward <strong>${appTitle}</strong> has been released.</p>
+     <p>Your card <strong>will not be charged</strong> and no payment has been taken. The authorization hold will disappear from your account within 1–5 business days depending on your bank.</p>
+     <p>If you change your mind, you&rsquo;re welcome to back this idea again — your support makes a difference.</p>`,
+    slug ? { text: 'View the project →', url: `${APP_URL}/fund/${slug}` } : undefined
+  )
+  return send(to, `Your pledge for "${appTitle}" has been released`, html)
+}
+
 export async function sendNewIdeaAlert({
   appTitle,
   targetUser,

@@ -12,7 +12,7 @@ export type IdeaStatus =
   | 'expired'
 
 export type PledgeType = 'watch' | 'pledge' | 'hosting'
-export type PledgeStatus = 'pending' | 'held' | 'captured' | 'refunded' | 'failed'
+export type PledgeStatus = 'pending' | 'held' | 'captured' | 'refunded' | 'failed' | 'cancelled'
 export type UserTier = 'watcher' | 'supporter' | 'backer' | 'patron' | 'legend'
 export type EmailType =
   | 'submission_confirmed'
@@ -26,6 +26,7 @@ export type EmailType =
   | 'hosting_warning'
   | 'hosting_expired'
   | 'refund_issued'
+  | 'pledge_released'
 export type BuildStatus = 'not_started' | 'in_progress' | 'demo_ready' | 'shipped'
 
 export type FeatureItem = {

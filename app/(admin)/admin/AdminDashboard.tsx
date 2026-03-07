@@ -118,6 +118,7 @@ export function AdminDashboard({
 
   // Hosting panel state
   const [hostingGoalEdit, setHostingGoalEdit] = useState<Record<string, string>>({})
+  const [copied, setCopied] = useState<Record<string, boolean>>({})
 
   // Lookup maps
   const userMap = Object.fromEntries(users.map((u) => [u.id, u]))
@@ -147,6 +148,37 @@ export function AdminDashboard({
     if (s === 'success') return '✓ Done!'
     if (s === 'error')   return '⚠ Failed'
     return label
+  }
+
+  function buildPrompt(idea: IdeaRow): string {
+    const featureLines = (idea.features ?? [])
+      .map((f) => `- [${f.priority}] ${f.text}`)
+      .join('\n')
+    return `Build a web app with the following spec:
+
+**App Name:** ${idea.title}
+**Target User:** ${idea.target_user ?? '—'}
+**Platform:** ${idea.platform_preference ?? 'web'}
+**Description:** ${idea.goal_description ?? '—'}
+**Features:**
+${featureLines || '- (no features listed)'}
+**Similar Apps:** ${idea.similar_apps ?? 'None listed'}
+
+Technical requirements:
+- Deploy to Firebase Hosting so it can be hosted at ${idea.slug ?? '[slug]'}.shipdit.co
+- Mobile responsive
+- Clean, modern UI
+- Free to use for all users
+- No login required unless essential to the core feature
+
+Start with a fully working MVP that covers the core use case. Do not add unnecessary complexity. Ship fast.`
+  }
+
+  function copyPrompt(idea: IdeaRow) {
+    navigator.clipboard.writeText(buildPrompt(idea)).then(() => {
+      setCopied((s) => ({ ...s, [idea.id]: true }))
+      setTimeout(() => setCopied((s) => { const n = { ...s }; delete n[idea.id]; return n }), 1800)
+    })
   }
 
   async function act(url: string, body: Record<string, unknown>, key: string) {
@@ -436,6 +468,20 @@ export function AdminDashboard({
                             {btnTxt('🚀 GO LIVE', `${idea.id}::golive`)}
                           </button>
                         )}
+
+                        {/* Build Prompt — all statuses */}
+                        <button
+                          onClick={() => copyPrompt(idea)}
+                          style={{
+                            ...btnBase,
+                            width: '100%',
+                            marginTop: 4,
+                            borderTop: '1px solid #c0c0c0',
+                            ...(copied[idea.id] ? { background: '#a0c0a0', borderColor: '#808080 #fff #fff #808080', color: '#004000' } : {}),
+                          }}
+                        >
+                          {copied[idea.id] ? '✓ Copied!' : '📋 Build Prompt'}
+                        </button>
 
                         {/* DELETE — all statuses */}
                         <button

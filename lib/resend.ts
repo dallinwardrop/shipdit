@@ -82,6 +82,10 @@ ${demoUrl ? `<p><a href="${demoUrl}">View Demo</a></p>` : ''}
       subject: `"${ideaTitle}" is live! — Shipdit`,
       html: `<h1>It's live!</h1><p><strong>${ideaTitle}</strong> is done and free for everyone to use.</p>${ideaSlug ? `<p><a href="${ideaUrl}">View the app</a></p>` : ''}`,
     },
+    pledge_released: {
+      subject: `Your pledge for "${ideaTitle}" has been released — Shipdit`,
+      html: `<h1>Pledge released</h1><p>Your pledge for <strong>${ideaTitle}</strong> has been released. No charge has been made.</p>`,
+    },
     refund_issued: {
       subject: `Your pledge for "${ideaTitle}" has been refunded — Shipdit`,
       html: `<h1>Refund issued</h1>

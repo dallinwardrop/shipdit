@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { ReleasePledgeButton } from './ReleasePledgeButton'
 
 export const dynamic = 'force-dynamic'
 import { formatDollars } from '@/lib/utils'
@@ -8,7 +9,7 @@ export default async function PledgesPage() {
 
   const { data: pledges } = await admin
     .from('pledges')
-    .select('id, amount, type, status, is_submitter_pledge, created_at, captured_at, refunded_at, app_ideas(title, slug), users(email, full_name)')
+    .select('id, amount, type, status, stripe_payment_intent_id, is_submitter_pledge, created_at, captured_at, refunded_at, app_ideas(title, slug), users(email, full_name)')
     .order('created_at', { ascending: false })
     .limit(200)
 
@@ -44,6 +45,7 @@ export default async function PledgesPage() {
                 <th className="p-2 text-center">Type</th>
                 <th className="p-2 text-center">Status</th>
                 <th className="p-2 text-left">Date</th>
+                <th className="p-2"></th>
               </tr>
             </thead>
             <tbody>
@@ -77,6 +79,11 @@ export default async function PledgesPage() {
                     </td>
                     <td className="p-2">
                       {new Date(pledge.created_at).toLocaleDateString('en-US')}
+                    </td>
+                    <td className="p-2">
+                      {pledge.status === 'held' && idea && (
+                        <ReleasePledgeButton pledgeId={pledge.id} appTitle={idea.title} />
+                      )}
                     </td>
                   </tr>
                 )
