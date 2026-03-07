@@ -36,7 +36,7 @@ async function getAllIdeas(): Promise<IdeaWithTopDonor[]> {
   }
 
   // Momentum score: ((24h * 3) + 7d) / (hoursOld + 2)^1.2
-  function momentumScore(idea: (typeof ideas)[0]): number {
+  function momentumScore(idea: { id: string; created_at: string }): number {
     const c = pledgeMap[idea.id] ?? { last24h: 0, last7d: 0 }
     const hoursOld = (now.getTime() - new Date(idea.created_at).getTime()) / 3_600_000
     return (c.last24h * 3 + c.last7d) / Math.pow(hoursOld + 2, 1.2)

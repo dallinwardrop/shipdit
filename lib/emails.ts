@@ -72,7 +72,7 @@ function layout(body: string, cta?: { text: string; url: string }): string {
 
 async function send(to: string, subject: string, html: string): Promise<string | null> {
   try {
-    const { data, error } = await resend.emails.send({ from: FROM, to, subject, html, reply_to: 'dallin@shipdit.co' })
+    const { data, error } = await resend.emails.send({ from: FROM, to, subject, html, replyTo: 'dallin@shipdit.co' })
     if (error) { console.error('[emails] Resend error:', error); return null }
     return data?.id ?? null
   } catch (err) {
