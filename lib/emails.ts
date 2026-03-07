@@ -1,7 +1,7 @@
 import { resend } from './resend'
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://shipdit.co'
-const FROM = 'Shipdit <noreply@shipdit.co>'
+const FROM = 'Shipdit <hello@shipdit.co>'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -72,7 +72,7 @@ function layout(body: string, cta?: { text: string; url: string }): string {
 
 async function send(to: string, subject: string, html: string): Promise<void> {
   try {
-    const { error } = await resend.emails.send({ from: FROM, to, subject, html })
+    const { error } = await resend.emails.send({ from: FROM, to, subject, html, reply_to: 'dallin@shipdit.co' })
     if (error) console.error('[emails] Resend error:', error)
   } catch (err) {
     console.error('[emails] Send failed:', err)

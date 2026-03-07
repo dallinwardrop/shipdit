@@ -77,10 +77,10 @@ export default async function FundIdeaPage({
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className={isBuilt ? 'space-y-4' : 'flex gap-4 items-start'}>
+      <div className={isBuilt ? 'space-y-4' : 'flex flex-col md:flex-row gap-4 md:items-start'}>
 
         {/* ── Main / left column ── */}
-        <div className="space-y-4" style={isBuilt ? {} : { flex: '0 0 65%', minWidth: 0 }}>
+        <div className={`space-y-4 min-w-0${isBuilt ? '' : ' w-full md:w-[65%] md:flex-none'}`}>
 
           {/* Header */}
           <div className="win95-window">
@@ -264,7 +264,7 @@ export default async function FundIdeaPage({
 
         {/* ── Right column (35%) — sticky — hidden for built apps ── */}
         {!isBuilt && (
-          <div style={{ flex: '0 0 35%', minWidth: 0, position: 'sticky', top: 16, alignSelf: 'flex-start' }}>
+          <div className="w-full md:w-[35%] md:flex-none min-w-0 md:sticky md:top-4 md:self-start">
             {isPledgeOpen ? (
               <PledgeBox appIdeaId={idea.id} slug={slug} fundingDeadline={idea.funding_deadline} />
             ) : (

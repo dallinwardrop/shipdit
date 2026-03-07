@@ -179,10 +179,7 @@ export function AdminDashboard({
   // ── Sidebar ──────────────────────────────────────────────────────────────
 
   const sidebar = (
-    <div
-      className="win95-window"
-      style={{ width: 168, flexShrink: 0, position: 'sticky', top: 60, alignSelf: 'flex-start' }}
-    >
+    <div className="win95-window w-full md:w-[168px] md:flex-none md:sticky md:top-[60px] md:self-start">
       <div className="win95-title-bar">
         <span className="font-vt323 text-base">Command Center</span>
       </div>
@@ -724,7 +721,7 @@ export function AdminDashboard({
 
   return (
     <div style={{ minHeight: 'calc(100vh - 52px)', background: '#0a0a1a', padding: 12 }}>
-      <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+      <div className="flex flex-col md:flex-row gap-3 md:items-start">
         {sidebar}
         {panel === 'pipeline' && pipelinePanel}
         {panel === 'ledger'   && ledgerPanel}

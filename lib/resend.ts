@@ -8,7 +8,8 @@ if (!process.env.RESEND_API_KEY) {
 export const resend = new Resend(process.env.RESEND_API_KEY)
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
-const FROM_ADDRESS = 'Shipdit <noreply@shipdit.co>'
+const FROM_ADDRESS = 'Shipdit <hello@shipdit.co>'
+const REPLY_TO = 'dallin@shipdit.co'
 
 export type EmailPayload = {
   to: string
@@ -84,6 +85,7 @@ ${demoUrl ? `<p><a href="${demoUrl}">View Demo</a></p>` : ''}
       to,
       subject,
       html,
+      reply_to: REPLY_TO,
     })
 
     if (error) {
