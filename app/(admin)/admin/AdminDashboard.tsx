@@ -401,6 +401,23 @@ export function AdminDashboard({
                           </button>
                         )}
 
+                        {/* LIVE + goal NOT hit: Force Fund */}
+                        {status === 'live' && (idea.build_price == null || idea.amount_raised < idea.build_price) && (
+                          <button
+                            onClick={() => {
+                              const raised = formatDollars(idea.amount_raised)
+                              const goal = idea.build_price ? formatDollars(idea.build_price) : 'no goal set'
+                              if (confirm(`FORCE FUND "${idea.title}"?\n\nRaised: ${raised} of ${goal}\n\nThis will capture all held pledges and mark the idea as funded regardless of whether the goal was hit. Backers will be charged. This cannot be undone.`)) {
+                                act('/api/capture', { idea_id: idea.id }, `${idea.id}::force-fund`)
+                              }
+                            }}
+                            disabled={isLoading}
+                            style={styledBtn({ ...btnBase, width: '100%', padding: '4px', color: '#804000', borderColor: '#fff #808080 #808080 #fff' }, `${idea.id}::force-fund`)}
+                          >
+                            {btnTxt('⚡ FORCE FUND', `${idea.id}::force-fund`)}
+                          </button>
+                        )}
+
                         {/* PRICED: Go Live */}
                         {status === 'priced' && (
                           <button
