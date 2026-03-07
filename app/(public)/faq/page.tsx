@@ -87,6 +87,19 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
     ],
   },
   {
+    section: 'Feature Requests & Updates',
+    items: [
+      {
+        q: 'Can new features be added after an app ships?',
+        a: 'Yes — once an app is live, the community can request and fund new features. Features are typically priced at $500. Express interest in a feature and when enough people are in, we\'ll run a 24-hour funding sprint — only then is your card authorized. Hit the goal and it gets built.',
+      },
+      {
+        q: 'How do feature funding sprints work?',
+        a: 'When a feature gets enough interest, we send everyone who requested it an email kicking off a 24-hour window. Back it, hit the goal, it gets built. No goal = no charge, no feature.',
+      },
+    ],
+  },
+  {
     section: 'Your Account',
     items: [
       {
