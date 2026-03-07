@@ -65,16 +65,22 @@ export default async function FundIdeaPage({
   const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live']
   const isPledgeOpen = PLEDGE_OPEN.includes(idea.status)
   const isPreLive = ['submitted', 'under_review', 'awaiting_price'].includes(idea.status)
+  const isBuilt = idea.status === 'built'
   const appLabel = idea.app_number
     ? `#${String(idea.app_number).padStart(3, '0')}`
     : null
 
+  const hGoal = (idea.hosting_monthly_goal as number | null) ?? 0
+  const hCollected = (idea.hosting_collected as number | null) ?? 0
+  const hPct = hGoal > 0 ? progressPercent(hCollected, hGoal) : 0
+  const hColor = hPct >= 50 ? '#006600' : hPct >= 25 ? '#886600' : '#cc0000'
+
   return (
     <div className="max-w-5xl mx-auto">
-      <div className="flex gap-4 items-start">
+      <div className={isBuilt ? 'space-y-4' : 'flex gap-4 items-start'}>
 
-        {/* ── Left column (65%) ── */}
-        <div className="space-y-4" style={{ flex: '0 0 65%', minWidth: 0 }}>
+        {/* ── Main / left column ── */}
+        <div className="space-y-4" style={isBuilt ? {} : { flex: '0 0 65%', minWidth: 0 }}>
 
           {/* Header */}
           <div className="win95-window">
@@ -170,6 +176,57 @@ export default async function FundIdeaPage({
             </div>
           </div>
 
+          {/* Hosting panel — full-width layout for built apps */}
+          {isBuilt && (
+            <div className="win95-window">
+              <div className="win95-title-bar">
+                <span className="font-vt323 text-lg">Keep this app free</span>
+              </div>
+              <div className="p-4 space-y-3">
+                <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                  Community contributions cover server costs and keep this app free for everyone.
+                </p>
+
+                {hGoal > 0 ? (
+                  <div className="space-y-2">
+                    <div className="win95-progress-track">
+                      <div className="win95-progress-fill" style={{ width: `${hPct}%`, background: hColor }} />
+                    </div>
+                    <div className="flex justify-between text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+                      <span>{formatDollars(hCollected)} of {formatDollars(hGoal)} this month</span>
+                      <span style={{ fontWeight: 'bold', color: hColor }}>{hPct}%</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="win95-sunken p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                    Hosting goal not yet set.
+                  </div>
+                )}
+
+                <div className="flex gap-2 flex-wrap">
+                  {idea.demo_url && (
+                    <a
+                      href={idea.demo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="win95-btn text-xs"
+                      style={{ padding: '6px 12px' }}
+                    >
+                      Launch App →
+                    </a>
+                  )}
+                  <a
+                    href={`/hosting/${slug}`}
+                    className="win95-btn win95-btn-primary text-xs"
+                    style={{ padding: '6px 12px', fontFamily: 'VT323, monospace', fontSize: '1rem' }}
+                  >
+                    💙 Support Hosting
+                  </a>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Features */}
           {features.length > 0 && (
             <div className="win95-window">
@@ -205,41 +262,30 @@ export default async function FundIdeaPage({
           )}
         </div>
 
-        {/* ── Right column (35%) — sticky ── */}
-        <div style={{ flex: '0 0 35%', minWidth: 0, position: 'sticky', top: 16, alignSelf: 'flex-start' }}>
-          {isPledgeOpen ? (
-            <PledgeBox appIdeaId={idea.id} slug={slug} fundingDeadline={idea.funding_deadline} />
-          ) : (
-            <div className="win95-window">
-              <div className="win95-title-bar">
-                <span className="font-vt323 text-lg">Status</span>
-              </div>
-              <div className="p-3 text-sm space-y-2" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                {idea.status === 'funded'   && '✓ Fully funded! Build starting soon.'}
-                {idea.status === 'building' && '🔨 Build in progress.'}
-                {idea.status === 'in_review' && '🔍 Build complete — in final review.'}
-                {idea.status === 'built'    && '🚀 Shipd! This app is live for everyone.'}
-                {idea.status !== 'built' && idea.demo_url && (
-                  <a href={idea.demo_url} target="_blank" rel="noopener noreferrer" className="win95-btn inline-block mt-2 text-xs">
-                    View Demo →
-                  </a>
-                )}
-                {idea.status === 'built' && (
-                  <div className="space-y-2 mt-2">
-                    {idea.demo_url && (
-                      <a href={idea.demo_url} target="_blank" rel="noopener noreferrer" className="win95-btn block text-center text-xs" style={{ padding: '6px' }}>
-                        Launch App →
-                      </a>
-                    )}
-                    <a href={`/hosting/${slug}`} className="win95-btn block text-center text-xs" style={{ padding: '6px' }}>
-                      💙 Support Hosting
+        {/* ── Right column (35%) — sticky — hidden for built apps ── */}
+        {!isBuilt && (
+          <div style={{ flex: '0 0 35%', minWidth: 0, position: 'sticky', top: 16, alignSelf: 'flex-start' }}>
+            {isPledgeOpen ? (
+              <PledgeBox appIdeaId={idea.id} slug={slug} fundingDeadline={idea.funding_deadline} />
+            ) : (
+              <div className="win95-window">
+                <div className="win95-title-bar">
+                  <span className="font-vt323 text-lg">Status</span>
+                </div>
+                <div className="p-3 text-sm space-y-2" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+                  {idea.status === 'funded'   && '✓ Fully funded! Build starting soon.'}
+                  {idea.status === 'building' && '🔨 Build in progress.'}
+                  {idea.status === 'in_review' && '🔍 Build complete — in final review.'}
+                  {idea.demo_url && (
+                    <a href={idea.demo_url} target="_blank" rel="noopener noreferrer" className="win95-btn inline-block mt-2 text-xs">
+                      View Demo →
                     </a>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
       </div>
     </div>
