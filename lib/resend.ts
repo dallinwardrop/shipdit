@@ -70,6 +70,18 @@ ${demoUrl ? `<p><a href="${demoUrl}">View Demo</a></p>` : ''}
       html: `<h1>App offline</h1>
 <p><strong>${ideaTitle}</strong> has gone offline due to expired hosting. Donate to bring it back.</p>`,
     },
+    idea_funded: {
+      subject: `"${ideaTitle}" is fully funded! — Shipdit`,
+      html: `<h1>Fully funded!</h1><p><strong>${ideaTitle}</strong> hit its goal. The build is starting soon.</p>`,
+    },
+    idea_building: {
+      subject: `"${ideaTitle}" is being built! — Shipdit`,
+      html: `<h1>Build in progress!</h1><p>Work has started on <strong>${ideaTitle}</strong>. Stay tuned for updates.</p>`,
+    },
+    idea_built: {
+      subject: `"${ideaTitle}" is live! — Shipdit`,
+      html: `<h1>It's live!</h1><p><strong>${ideaTitle}</strong> is done and free for everyone to use.</p>${ideaSlug ? `<p><a href="${ideaUrl}">View the app</a></p>` : ''}`,
+    },
     refund_issued: {
       subject: `Your pledge for "${ideaTitle}" has been refunded — Shipdit`,
       html: `<h1>Refund issued</h1>
