@@ -134,6 +134,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Notify admin of new submission (non-fatal)
+    console.log('[submit] ADMIN_EMAIL:', process.env.ADMIN_EMAIL)
     sendNewIdeaAlert({
       appTitle: title,
       goalDescription: goal_description,
