@@ -43,6 +43,14 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
         q: 'What payment methods are accepted?',
         a: 'All major credit and debit cards via Stripe. More payment methods coming soon.',
       },
+      {
+        q: 'Do I need to update my payment info?',
+        a: 'No — your card is authorized when you pledge and only charged if the funding goal is hit within 72 hours. You don\'t need to do anything else. If your card is declined at capture time we\'ll notify you.',
+      },
+      {
+        q: 'How long is my card held?',
+        a: 'Your card is authorized (not charged) when you pledge. If the goal is hit within 72 hours, your card is captured. If not, the hold is automatically released — no charge, no action needed from you.',
+      },
     ],
   },
   {
