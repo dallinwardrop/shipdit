@@ -30,6 +30,26 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         </div>
       </nav>
       <main className="p-4">{children}</main>
+
+      <footer className="win95-raised mt-4" style={{ borderBottom: 'none', borderLeft: 'none', borderRight: 'none' }}>
+        <div className="px-4 py-2 flex flex-wrap items-center gap-x-4 gap-y-1" style={{ minWidth: 'max-content' }}>
+          <span className="font-vt323 text-lg" style={{ color: '#000080' }}>SHIPDIT</span>
+          <span className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+            Community-funded apps, free for everyone.
+          </span>
+          <div className="flex gap-3 ml-auto">
+            <Link href="/terms" className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040', textDecoration: 'none' }}>
+              Terms
+            </Link>
+            <Link href="/privacy" className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040', textDecoration: 'none' }}>
+              Privacy
+            </Link>
+            <a href="mailto:dallin@shipdit.co" className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040', textDecoration: 'none' }}>
+              Contact
+            </a>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
