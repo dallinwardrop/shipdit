@@ -18,10 +18,12 @@ If the funding goal is not reached within 72 hours of going live, all authorizat
 Captured funds are non-refundable once a build has commenced, except at Shipdit's sole discretion. Hosting contributions made to keep live apps online are non-refundable once processed.`,
   },
   {
-    title: '3. No Guarantee of Delivery',
-    body: `Shipdit makes no guarantee that a funded app will be delivered within any specific timeframe or that it will meet every feature request described in the original submission. Build scope, timelines, and final feature sets are determined by Shipdit at its discretion.
+    title: '3. Build Guarantee',
+    body: `Once a funding goal is reached and payments are captured, Shipdit guarantees delivery of a working MVP within 72 hours. If a working app is not delivered within 72 hours of payment capture, every backer will receive a full automatic refund of their captured pledge — no request or dispute required.
 
-In the unlikely event that Shipdit is unable to complete a funded app, backers will be issued full refunds for any captured pledges.`,
+The 72-hour guarantee applies to the initial working MVP. Build scope, final feature sets, and post-launch improvements are determined by Shipdit at its discretion. The guarantee covers delivery of a functional app that addresses the core goal described in the submission — not every feature listed.
+
+Shipdit reserves the right to issue refunds proactively if it determines the build cannot be completed to a satisfactory standard within the guarantee window.`,
   },
   {
     title: '4. Idea Review and Rejection',

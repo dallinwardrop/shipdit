@@ -69,6 +69,10 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
         a: 'Urgency drives action. A 72-hour window means you have three focused days to rally your community, make TikToks, and get it funded. The clock starts when your idea is approved — usually within a few hours of submission. If it doesn\'t hit the goal, all holds are released and no one gets charged. You can always resubmit and try again.',
       },
       {
+        q: 'What if the app doesn\'t get built?',
+        a: 'Every funded idea comes with a 72-hour build guarantee. Once payments are captured, a working MVP will be delivered within 72 hours — or every backer receives a full automatic refund. No disputes, no waiting. If I can\'t deliver, you get your money back immediately.',
+      },
+      {
         q: 'Who builds the apps?',
         a: 'I do — Dallin Wardrop, a product manager and developer with 10+ years building software products. Shipdit is my commitment to build what the community actually wants.',
       },

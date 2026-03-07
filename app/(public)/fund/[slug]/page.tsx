@@ -176,6 +176,26 @@ export default async function FundIdeaPage({
             </div>
           </div>
 
+          {/* Build Guarantee panel — funded or building */}
+          {(idea.status === 'funded' || idea.status === 'building') && (
+            <div className="win95-window">
+              <div className="win95-title-bar" style={{ background: '#004000' }}>
+                <span className="font-vt323 text-lg">🛡️ Build Guarantee</span>
+              </div>
+              <div className="p-4 space-y-2" style={{ background: '#f0fff0' }}>
+                <p className="font-vt323text-xl" style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 13, fontWeight: 'bold', color: '#004000' }}>
+                  {idea.status === 'funded'
+                    ? '✓ Fully funded — build starts within 72 hours.'
+                    : '🔨 Build is in progress — shipping within 72 hours of funding.'}
+                </p>
+                <p className="text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                  Once funding is complete and payments are captured, a working MVP is guaranteed to be delivered within <strong>72 hours</strong>.
+                  If the app is not delivered in time, every backer receives a <strong>full automatic refund</strong> — no questions asked.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Hosting panel — full-width layout for built apps */}
           {isBuilt && (
             <div className="win95-window">
