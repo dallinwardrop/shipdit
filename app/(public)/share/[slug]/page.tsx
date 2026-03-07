@@ -26,7 +26,7 @@ export default async function SharePage({
   // Only the submitter may view the share dashboard
   const authClient = await createClient()
   const { data: { user } } = await authClient.auth.getUser()
-  if (!user || user.id !== idea.submitter_id) {
+  if (user && user.id !== idea.submitter_id) {
     redirect(`/fund/${slug}`)
   }
 
