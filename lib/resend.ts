@@ -97,7 +97,7 @@ ${demoUrl ? `<p><a href="${demoUrl}">View Demo</a></p>` : ''}
       to,
       subject,
       html,
-      reply_to: REPLY_TO,
+      replyTo: REPLY_TO,
     })
 
     if (error) {
