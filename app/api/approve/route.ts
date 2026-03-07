@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { sendEmail } from '@/lib/resend'
+import { sendIdeaBuilding, sendIdeaBuilt } from '@/lib/emails'
 import type { IdeaStatus } from '@/lib/supabase/types'
 
 // Valid status transitions for pipeline
@@ -11,7 +12,7 @@ const TRANSITIONS: Record<IdeaStatus, IdeaStatus | null> = {
   awaiting_price: 'priced',
   priced: 'live',
   live: null,
-  funded: null,
+  funded: 'building',
   building: 'in_review',
   in_review: 'built',
   built: null,
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
 
     const { data: idea } = await admin
       .from('app_ideas')
-      .select('id, title, slug, status, submitter_id')
+      .select('id, title, slug, status, submitter_id, demo_url')
       .eq('id', app_idea_id)
       .single()
 
@@ -141,6 +142,57 @@ export async function POST(request: NextRequest) {
             ideaSlug: idea.slug ?? undefined,
           }).catch(console.warn)
         }
+      }
+
+      // Notify all backers on key build milestones (non-blocking)
+      if ((nextStatus === 'building' || nextStatus === 'built') && idea.slug) {
+        ;(async () => {
+          const { data: pledgeRows } = await admin
+            .from('pledges')
+            .select('user_id')
+            .eq('app_idea_id', app_idea_id)
+            .eq('type', 'pledge')
+            .in('status', ['held', 'captured'])
+
+          const uniqueUserIds = [...new Set((pledgeRows ?? []).map((p) => p.user_id))]
+          if (!uniqueUserIds.length) return
+
+          const { data: backers } = await admin
+            .from('users')
+            .select('id, email')
+            .in('id', uniqueUserIds)
+
+          for (const backer of backers ?? []) {
+            if (!backer.email) continue
+
+            let resendId: string | null = null
+            let subject = ''
+            let emailType: 'idea_building' | 'idea_built'
+
+            if (nextStatus === 'building') {
+              subject = `🔨 ${idea.title} is being built!`
+              emailType = 'idea_building'
+              resendId = await sendIdeaBuilding(backer.email, { appTitle: idea.title, slug: idea.slug! })
+            } else {
+              subject = `🚀 ${idea.title} is live!`
+              emailType = 'idea_built'
+              resendId = await sendIdeaBuilt(backer.email, {
+                appTitle: idea.title,
+                slug: idea.slug!,
+                appUrl: idea.demo_url ?? null,
+              })
+            }
+
+            await admin.from('email_log').insert({
+              to_user_id: backer.id,
+              to_email: backer.email,
+              subject,
+              type: emailType,
+              app_idea_id: idea.id,
+              resend_id: resendId,
+            })
+          }
+        })().catch((err) => console.warn('[approve] Backer email failed:', err))
       }
 
       return NextResponse.json({ success: true, status: nextStatus })

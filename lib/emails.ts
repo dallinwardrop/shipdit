@@ -70,12 +70,14 @@ function layout(body: string, cta?: { text: string; url: string }): string {
 </html>`
 }
 
-async function send(to: string, subject: string, html: string): Promise<void> {
+async function send(to: string, subject: string, html: string): Promise<string | null> {
   try {
-    const { error } = await resend.emails.send({ from: FROM, to, subject, html, reply_to: 'dallin@shipdit.co' })
-    if (error) console.error('[emails] Resend error:', error)
+    const { data, error } = await resend.emails.send({ from: FROM, to, subject, html, reply_to: 'dallin@shipdit.co' })
+    if (error) { console.error('[emails] Resend error:', error); return null }
+    return data?.id ?? null
   } catch (err) {
     console.error('[emails] Send failed:', err)
+    return null
   }
 }
 
@@ -224,6 +226,53 @@ export async function sendHostingFunded(
     { text: 'View the app →', url: `${APP_URL}/hosting/${slug}` }
   )
   await send(to, `✓ Hosting funded for ${appTitle} — thank you!`, html)
+}
+
+export async function sendIdeaFunded(
+  to: string,
+  { appTitle, slug }: { appTitle: string; slug: string }
+): Promise<string | null> {
+  const html = layout(
+    `<h2 style="margin-top:0;color:#000080;">🎉 ${appTitle} is fully funded!</h2>
+     <p>Congratulations — <strong>${appTitle}</strong> has hit its funding goal.</p>
+     <p>The build is starting soon. You&rsquo;ll get another update once the app is complete and ready for everyone to use.</p>
+     <p>Thank you for making this happen.</p>`,
+    { text: 'View the project →', url: `${APP_URL}/fund/${slug}` }
+  )
+  return send(to, `🎉 ${appTitle} is fully funded!`, html)
+}
+
+export async function sendIdeaBuilding(
+  to: string,
+  { appTitle, slug }: { appTitle: string; slug: string }
+): Promise<string | null> {
+  const html = layout(
+    `<h2 style="margin-top:0;color:#000080;">🔨 ${appTitle} is being built!</h2>
+     <p>Work has officially started on <strong>${appTitle}</strong>.</p>
+     <p>The build is in progress. You&rsquo;ll hear from us again when the app is complete and ready for everyone.</p>
+     <p>Thank you for your support — you&rsquo;re the reason this is happening.</p>`,
+    { text: 'Follow the project →', url: `${APP_URL}/fund/${slug}` }
+  )
+  return send(to, `🔨 ${appTitle} is being built!`, html)
+}
+
+export async function sendIdeaBuilt(
+  to: string,
+  { appTitle, slug, appUrl }: { appTitle: string; slug: string; appUrl?: string | null }
+): Promise<string | null> {
+  const launchLine = appUrl
+    ? `<p>The app is live and ready to use: <a href="${appUrl}" style="color:#000080;">${appUrl}</a></p>`
+    : `<p>The app is now live and free for everyone to use.</p>`
+  const html = layout(
+    `<h2 style="margin-top:0;color:#000080;">🚀 ${appTitle} is live!</h2>
+     <p><strong>${appTitle}</strong> is done — shipped and free for everyone.</p>
+     ${launchLine}
+     <p>Thank you for backing this idea. You helped make a free app for everyone.</p>`,
+    appUrl
+      ? { text: 'Launch the app →', url: appUrl }
+      : { text: 'View on Shipdit →', url: `${APP_URL}/fund/${slug}` }
+  )
+  return send(to, `🚀 ${appTitle} is live!`, html)
 }
 
 export async function sendNewIdeaAlert({

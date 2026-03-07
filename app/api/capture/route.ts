@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { stripe } from '@/lib/stripe'
-import { sendGoalHit } from '@/lib/emails'
+import { sendIdeaFunded } from '@/lib/emails'
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
 
     const { data: idea } = await admin
       .from('app_ideas')
-      .select('id, title, slug, status, build_price, amount_raised')
+      .select('id, title, slug, status, build_price, amount_raised, submitter_id')
       .eq('id', ideaId)
       .single()
 
@@ -64,19 +64,30 @@ export async function POST(request: NextRequest) {
       .update({ status: 'funded' })
       .eq('id', ideaId)
 
-    // Email all captured backers (non-blocking)
-    const capturedUserIds = pledges.map((p) => p.user_id)
-    const { data: backers } = await admin
-      .from('users')
-      .select('email')
-      .in('id', capturedUserIds)
+    // Email all backers and log (non-blocking)
+    if (idea.slug) {
+      const capturedUserIds = [...new Set(pledges.map((p) => p.user_id))]
+      const { data: backers } = await admin
+        .from('users')
+        .select('id, email')
+        .in('id', capturedUserIds)
 
-    pledges.forEach((pledge) => {
-      const backer = backers?.find((b, i) => capturedUserIds[i] === pledge.user_id)
-      if (backer?.email) {
-        sendGoalHit(backer.email, { appTitle: idea.title, amount: pledge.amount }).catch(console.error)
-      }
-    })
+      const subject = `🎉 ${idea.title} is fully funded!`
+      ;(async () => {
+        for (const backer of backers ?? []) {
+          if (!backer.email) continue
+          const resendId = await sendIdeaFunded(backer.email, { appTitle: idea.title, slug: idea.slug! })
+          await admin.from('email_log').insert({
+            to_user_id: backer.id,
+            to_email: backer.email,
+            subject,
+            type: 'idea_funded',
+            app_idea_id: idea.id,
+            resend_id: resendId,
+          })
+        }
+      })().catch((err) => console.warn('[capture] Backer email failed:', err))
+    }
 
     return NextResponse.json({ success: true, ...results })
   } catch (err) {
