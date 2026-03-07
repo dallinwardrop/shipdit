@@ -138,7 +138,7 @@ export function HostingContribute({
   if (succeeded) {
     return (
       <div
-        className="win95-raised p-4 text-sm space-y-2"
+        className="win95-raised p-3 text-sm space-y-1"
         style={{ borderColor: '#008000 #004000 #004000 #008000', background: '#d0ffd0' }}
       >
         <div className="font-vt323 text-2xl" style={{ color: '#004000' }}>✓ Thank you!</div>
@@ -150,97 +150,91 @@ export function HostingContribute({
   }
 
   return (
-    <div className="win95-window">
-      <div className="win95-title-bar">
-        <span className="font-vt323 text-xl">contribute.exe</span>
-      </div>
-      <div className="p-3 space-y-3">
-        <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-          Every dollar keeps this app <strong>free for everyone</strong>. Your contribution goes
-          directly to hosting costs.
-        </p>
+    <div className="space-y-3">
+      <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+        Every dollar keeps this app <strong>free for everyone</strong>. Your contribution goes directly to hosting costs.
+      </p>
 
-        {!clientSecret && (
-          <>
-            {/* Tiers */}
-            <div className="flex flex-wrap gap-2">
-              {TIERS.map((tier) => {
-                const isSelected = selectedCents === tier.amountCents && !customDollars
-                return (
-                  <button
-                    key={tier.amountCents}
-                    type="button"
-                    onClick={() => { setSelectedCents(tier.amountCents); setCustomDollars('') }}
-                    className="win95-btn"
-                    style={{
-                      background: isSelected ? '#000080' : '#c0c0c0',
-                      color: isSelected ? '#fff' : '#000',
-                      borderColor: isSelected
-                        ? '#000040 #8080ff #8080ff #000040'
-                        : '#fff #808080 #808080 #fff',
-                      padding: '6px 14px',
-                      fontFamily: 'VT323, monospace',
-                      fontSize: 18,
-                    }}
-                  >
-                    {tier.label}
-                  </button>
-                )
-              })}
-            </div>
+      {!clientSecret && (
+        <>
+          {/* Tiers */}
+          <div className="flex flex-wrap gap-2">
+            {TIERS.map((tier) => {
+              const isSelected = selectedCents === tier.amountCents && !customDollars
+              return (
+                <button
+                  key={tier.amountCents}
+                  type="button"
+                  onClick={() => { setSelectedCents(tier.amountCents); setCustomDollars('') }}
+                  className="win95-btn"
+                  style={{
+                    background: isSelected ? '#000080' : '#c0c0c0',
+                    color: isSelected ? '#fff' : '#000',
+                    borderColor: isSelected
+                      ? '#000040 #8080ff #8080ff #000040'
+                      : '#fff #808080 #808080 #fff',
+                    padding: '6px 14px',
+                    fontFamily: 'VT323, monospace',
+                    fontSize: 18,
+                  }}
+                >
+                  {tier.label}
+                </button>
+              )
+            })}
+          </div>
 
-            {/* Custom amount */}
-            <div className="flex gap-2 items-center">
-              <span className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', whiteSpace: 'nowrap' }}>
-                Custom $:
-              </span>
-              <input
-                type="number"
-                min="1"
-                className="win95-input"
-                placeholder="Other amount"
-                value={customDollars}
-                onChange={(e) => { setCustomDollars(e.target.value); setSelectedCents(null) }}
-              />
-            </div>
-
-            {error && (
-              <div className="win95-sunken p-2 text-xs" style={{ color: 'darkred' }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={handleContribute}
-              disabled={loading || !activeCents}
-              className="win95-btn win95-btn-primary w-full"
-              style={{
-                padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace',
-                ...(loading ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
-              }}
-            >
-              {loading ? '⌛ Processing…' : 'CONTRIBUTE TO HOSTING'}
-            </button>
-          </>
-        )}
-
-        {/* Step 2: card input */}
-        {clientSecret && (
-          <Elements stripe={stripePromise}>
-            <CardForm
-              clientSecret={clientSecret}
-              onSuccess={() => setSucceeded(true)}
-              onError={(msg) => setError(msg)}
+          {/* Custom amount */}
+          <div className="flex gap-2 items-center">
+            <span className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', whiteSpace: 'nowrap' }}>
+              Custom $:
+            </span>
+            <input
+              type="number"
+              min="1"
+              className="win95-input"
+              placeholder="Other amount"
+              value={customDollars}
+              onChange={(e) => { setCustomDollars(e.target.value); setSelectedCents(null) }}
             />
-            {error && (
-              <div className="win95-sunken p-2 text-xs mt-2" style={{ color: 'darkred' }}>
-                {error}
-              </div>
-            )}
-          </Elements>
-        )}
-      </div>
+          </div>
+
+          {error && (
+            <div className="win95-sunken p-2 text-xs" style={{ color: 'darkred' }}>
+              {error}
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleContribute}
+            disabled={loading || !activeCents}
+            className="win95-btn win95-btn-primary w-full"
+            style={{
+              padding: '10px', fontSize: '1rem', fontFamily: 'VT323, monospace',
+              ...(loading ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+            }}
+          >
+            {loading ? '⌛ Processing…' : 'CONTRIBUTE TO HOSTING'}
+          </button>
+        </>
+      )}
+
+      {/* Step 2: card input */}
+      {clientSecret && (
+        <Elements stripe={stripePromise}>
+          <CardForm
+            clientSecret={clientSecret}
+            onSuccess={() => setSucceeded(true)}
+            onError={(msg) => setError(msg)}
+          />
+          {error && (
+            <div className="win95-sunken p-2 text-xs mt-2" style={{ color: 'darkred' }}>
+              {error}
+            </div>
+          )}
+        </Elements>
+      )}
     </div>
   )
 }
