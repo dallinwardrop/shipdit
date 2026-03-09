@@ -216,7 +216,28 @@ export function PledgeBox({
       )}
       <div className="win95-window">
         <div className="win95-title-bar">
-          <span className="font-vt323 text-xl">pledge_now.exe</span>
+          <span className="font-vt323 text-xl flex-1">pledge_now.exe</span>
+          {clientSecret && (
+            <button
+              type="button"
+              onClick={() => setClientSecret(null)}
+              style={{
+                fontFamily: 'monospace',
+                fontSize: 11,
+                lineHeight: '16px',
+                padding: '0 6px',
+                background: '#c0c0c0',
+                color: '#000',
+                border: '2px solid',
+                borderColor: '#fff #808080 #808080 #fff',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+              aria-label="Cancel card entry"
+            >
+              ✕
+            </button>
+          )}
         </div>
         <div className="p-3 space-y-3">
           {isAlreadyFunded ? (
