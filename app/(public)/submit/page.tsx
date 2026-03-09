@@ -1,12 +1,16 @@
 'use client'
 
-import { Suspense, useState, useCallback } from 'react'
+import { Suspense, useState, useCallback, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import type { FeatureItem } from '@/lib/supabase/types'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import { createClient } from '@/lib/supabase/client'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+const DRAFT_KEY = 'shipdit_submit_draft'
 
 const cardElementOptions = {
   style: {
@@ -99,6 +103,9 @@ function CardConfirmStep({
 
 type Priority = 'MUST HAVE' | 'SHOULD HAVE' | 'NICE TO HAVE'
 
+// Note: email is NOT in FormState — the API always uses the authenticated user's
+// account email. For unauthenticated users, the email field is a separate local
+// state value (emailPreview) used only for display; it is never sent to the API.
 type FormState = {
   title: string
   goal_description: string
@@ -106,7 +113,6 @@ type FormState = {
   target_user: string
   similar_apps: string
   platform_preference: string
-  email: string
   submitter_pledge_amount: string
 }
 
@@ -121,7 +127,6 @@ const DEFAULT_FORM: FormState = {
   target_user: '',
   similar_apps: '',
   platform_preference: 'web',
-  email: '',
   submitter_pledge_amount: '',
 }
 
@@ -154,15 +159,52 @@ function FieldGroup({ children }: { children: React.ReactNode }) {
 function SubmitPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
+
   const [form, setForm] = useState<FormState>({
     ...DEFAULT_FORM,
     title: searchParams.get('title') ?? '',
     goal_description: searchParams.get('description') ?? '',
   })
+
+  // Separate local state for the email preview field (unauthenticated users only).
+  // This is never sent to the API — the API always uses the session user's email.
+  const [emailPreview, setEmailPreview] = useState('')
+
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [ideaSlug, setIdeaSlug] = useState<string | null>(null)
+
+  // Auth state
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null)
+  const [authLoading, setAuthLoading] = useState(true)
+
+  // UX state
+  const [savedForLogin, setSavedForLogin] = useState(false)
+  const [draftRestored, setDraftRestored] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user: authUser } }) => {
+      if (authUser) {
+        setUser({ id: authUser.id, email: authUser.email ?? '' })
+
+        // Restore draft if returning from login
+        try {
+          const raw = localStorage.getItem(DRAFT_KEY)
+          if (raw) {
+            const draft = JSON.parse(raw) as FormState
+            setForm(draft)
+            localStorage.removeItem(DRAFT_KEY)
+            setDraftRestored(true)
+          }
+        } catch {
+          localStorage.removeItem(DRAFT_KEY)
+        }
+      }
+      setAuthLoading(false)
+    })
+  }, [])
 
   const updateField = useCallback(
     <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -210,6 +252,17 @@ function SubmitPageInner() {
       return
     }
 
+    // ── Auth gate: not logged in → save draft and show sign-in prompt ────────
+    if (!user) {
+      try {
+        localStorage.setItem(DRAFT_KEY, JSON.stringify(form))
+      } catch {
+        // localStorage unavailable (e.g. private browsing) — gate anyway
+      }
+      setSavedForLogin(true)
+      return
+    }
+
     setSubmitting(true)
 
     try {
@@ -223,7 +276,6 @@ function SubmitPageInner() {
           target_user: form.target_user.trim(),
           similar_apps: form.similar_apps.trim() || null,
           platform_preference: form.platform_preference,
-          email: form.email.trim(),
           submitter_pledge_amount: pledgeAmount * 100, // convert to cents
         }),
       })
@@ -246,9 +298,10 @@ function SubmitPageInner() {
 
   const pledgeAmountCents = parseInt(form.submitter_pledge_amount, 10) * 100
 
-  return (
-    <div className="max-w-2xl mx-auto space-y-4">
-      {clientSecret && ideaSlug ? (
+  // ── Step 2: Card authorization ─────────────────────────────────────────────
+  if (clientSecret && ideaSlug) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
         <Elements stripe={stripePromise}>
           <CardConfirmStep
             clientSecret={clientSecret}
@@ -256,7 +309,65 @@ function SubmitPageInner() {
             pledgeAmountCents={pledgeAmountCents}
           />
         </Elements>
-      ) : (
+      </div>
+    )
+  }
+
+  // ── "Almost there!" gate: saved draft, waiting for sign-in ────────────────
+  if (savedForLogin) {
+    return (
+      <div className="max-w-2xl mx-auto space-y-4">
+        <div className="win95-window">
+          <div className="win95-title-bar" style={{ background: '#004000' }}>
+            <span className="font-vt323 text-xl">Almost there!</span>
+          </div>
+          <div className="p-6 space-y-4 text-center">
+            <p className="text-sm" style={{ fontFamily: 'Share Tech Mono, monospace', lineHeight: 1.7 }}>
+              Sign in to submit your idea — we&apos;ll save your progress.
+            </p>
+            <div>
+              <Link
+                href="/login?redirectTo=/submit"
+                className="win95-btn win95-btn-primary"
+                style={{
+                  display: 'inline-block',
+                  padding: '10px 24px',
+                  fontSize: '1rem',
+                  fontFamily: 'VT323, monospace',
+                  textDecoration: 'none',
+                }}
+              >
+                Sign In to Continue →
+              </Link>
+            </div>
+            <div>
+              <button
+                type="button"
+                className="win95-btn text-xs"
+                onClick={() => setSavedForLogin(false)}
+              >
+                ← Go back and edit
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="win95-window">
+          <div className="win95-title-bar" style={{ background: '#804000' }}>
+            <span className="font-vt323 text-lg">⚡ Once approved: 72 hours to fund it</span>
+          </div>
+          <div className="p-3 text-sm space-y-2" style={{ fontFamily: 'Share Tech Mono, monospace', background: '#fff8e8' }}>
+            <p>Ideas are reviewed within <strong>2–3 hours</strong> of submission. Once approved and live, you have <strong>72 hours</strong> to hit the funding goal.</p>
+            <p>Share it everywhere. Make TikToks. If it funds, I build it. If not, no one gets charged.</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Main form ──────────────────────────────────────────────────────────────
+  return (
+    <div className="max-w-2xl mx-auto space-y-4">
       <div className="win95-window">
         <div className="win95-title-bar">
           <span className="font-vt323 text-xl">Submit App Idea — New Window</span>
@@ -278,6 +389,21 @@ function SubmitPageInner() {
             Your idea enters a review queue. Once approved and priced, it goes live for community
             funding. Your pledge is held — never charged unless the minimum build goal is hit within 72 hours of going live.
           </p>
+
+          {/* Draft restored notice */}
+          {draftRestored && (
+            <div
+              className="win95-sunken p-2 text-xs mb-4"
+              style={{
+                fontFamily: 'Share Tech Mono, monospace',
+                color: '#004000',
+                background: '#d0ffd0',
+                borderColor: '#008000 #004000 #004000 #008000',
+              }}
+            >
+              ✓ Your draft was restored — review the fields below and submit when ready.
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* 1. Title */}
@@ -419,21 +545,60 @@ function SubmitPageInner() {
               )}
             </FieldGroup>
 
-            {/* 7. Email */}
+            {/* 7. Email — locked to account email when signed in */}
             <FieldGroup>
               <FieldLabel htmlFor="email">7. Your email</FieldLabel>
-              <input
-                id="email"
-                type="email"
-                className="win95-input"
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={(e) => updateField('email', e.target.value)}
-                required
-              />
-              <p className="text-xs" style={{ color: '#404040' }}>
-                Used to notify you when your idea is reviewed and when funding updates happen.
-              </p>
+              {authLoading ? (
+                /* While checking session — show disabled placeholder */
+                <input
+                  id="email"
+                  type="email"
+                  className="win95-input"
+                  value=""
+                  disabled
+                  placeholder="Loading..."
+                  style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                />
+              ) : user ? (
+                /* Signed in — show account email, locked */
+                <div className="flex items-center gap-2">
+                  <input
+                    id="email"
+                    type="email"
+                    className="win95-input"
+                    value={user.email}
+                    disabled
+                    style={{ opacity: 0.75, cursor: 'not-allowed', flexGrow: 1 }}
+                  />
+                  <span
+                    className="win95-sunken text-xs px-2 py-1 flex-shrink-0"
+                    style={{
+                      fontFamily: 'Share Tech Mono, monospace',
+                      color: '#004000',
+                      background: '#d0ffd0',
+                      borderColor: '#008000 #004000 #004000 #008000',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    ✓ Verified
+                  </span>
+                </div>
+              ) : (
+                /* Not signed in — editable field (value not sent to API) */
+                <>
+                  <input
+                    id="email"
+                    type="email"
+                    className="win95-input"
+                    placeholder="you@example.com"
+                    value={emailPreview}
+                    onChange={(e) => setEmailPreview(e.target.value)}
+                  />
+                  <p className="text-xs" style={{ color: '#404040' }}>
+                    You&apos;ll need to sign in before submitting — we&apos;ll save your progress.
+                  </p>
+                </>
+              )}
             </FieldGroup>
 
             {/* 8. Pledge amount */}
@@ -488,10 +653,10 @@ function SubmitPageInner() {
               <button
                 type="submit"
                 className="win95-btn win95-btn-primary"
-                disabled={submitting}
+                disabled={submitting || authLoading}
                 style={{
                   minWidth: 140,
-                  ...(submitting ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+                  ...(submitting || authLoading ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
                 }}
               >
                 {submitting ? '⌛ Submitting...' : 'Submit Idea →'}
@@ -500,7 +665,6 @@ function SubmitPageInner() {
           </form>
         </div>
       </div>
-      )}
 
       {/* 72-hour urgency callout */}
       <div className="win95-window">

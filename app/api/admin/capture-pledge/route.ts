@@ -35,8 +35,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Pledge not found.' }, { status: 404 })
   }
 
-  if (pledge.status !== 'authorized') {
-    return NextResponse.json({ error: `Pledge is not in authorized status (current: ${pledge.status}).` }, { status: 400 })
+  if (pledge.status !== 'held') {
+    return NextResponse.json({ error: `Pledge is not in held status (current: ${pledge.status}).` }, { status: 400 })
   }
 
   if (!pledge.stripe_payment_intent_id) {

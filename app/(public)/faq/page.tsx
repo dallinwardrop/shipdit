@@ -12,7 +12,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'How does the funding process work?',
-        a: 'Submit an idea and pledge what you\'re willing to put in. Your idea goes into review — typically approved within 2–3 hours. Once approved and live, the community can back it. The build price is a minimum floor — when total pledges reach it within 72 hours, all cards are charged and I start building. Pledges beyond the minimum go toward hosting costs and keeping the app free long-term. If the minimum isn\'t hit, every pledge is fully refunded.',
+        a: 'Submit an idea and pledge what you\'re willing to put in. Your idea goes into review — typically approved within 2–3 hours. Once approved and live, the community can back it. The build price is a minimum floor — when total pledges reach it within 72 hours, all cards are charged and I start building. Pledges beyond the minimum go toward hosting costs and keeping the app free long-term. If the minimum isn\'t hit and the idea isn\'t Force Funded, every pledge is fully refunded.',
       },
       {
         q: 'Who decides which ideas get built?',
@@ -29,7 +29,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'When does my card get charged?',
-        a: 'Your card is authorized (a hold is placed) when you pledge, but never charged until the minimum funding goal is hit. If the minimum isn\'t reached within 72 hours of going live, the hold is released and you owe nothing. Pledging after the goal is already hit goes toward hosting costs and is charged immediately.',
+        a: 'Your card is authorized (a hold is placed) when you pledge, but not charged until the funding goal is hit or the idea is Force Funded. If neither happens before the deadline, the hold is released and you owe nothing. Pledging after the goal is already hit goes toward hosting costs and is charged immediately.',
       },
       {
         q: 'Is my payment information safe?',
@@ -37,7 +37,11 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'How do refunds work?',
-        a: 'If an idea doesn\'t reach its minimum funding goal within 72 hours of going live, all pledges are automatically refunded. No action needed on your part.',
+        a: 'If an idea doesn\'t reach its minimum funding goal and isn\'t Force Funded, all pledges are automatically refunded when the deadline passes. No action needed on your part.',
+      },
+      {
+        q: 'What happens if an idea doesn\'t reach its funding goal?',
+        a: 'If an idea doesn\'t hit its minimum funding goal before the deadline, it moves to Unfunded status and all holds are released — no one gets charged. However, if there\'s strong community interest, the builder may choose to Force Fund the idea. If Force Funded, all authorized pledges are captured (cards are charged) and the build begins within 72 hours from the force fund date. You\'ll be notified by email before any force fund decision is made.',
       },
       {
         q: 'Is the funding goal a hard cap?',
@@ -49,11 +53,11 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Do I need to update my payment info?',
-        a: 'No — your card is authorized when you pledge and only charged if the funding goal is hit within 72 hours. You don\'t need to do anything else. If your card is declined at capture time we\'ll notify you.',
+        a: 'No — your card is authorized when you pledge and only charged if the funding goal is hit or the idea is Force Funded. You don\'t need to do anything else. If your card is declined at capture time we\'ll notify you.',
       },
       {
         q: 'How long is my card held?',
-        a: 'Your card is authorized (not charged) when you pledge. If the goal is hit within 72 hours, your card is captured. If not, the hold is automatically released — no charge, no action needed from you.',
+        a: 'Your card is authorized (not charged) when you pledge. If the goal is hit or the idea is Force Funded, your card is captured. If neither happens, the hold is automatically released — no charge, no action needed from you.',
       },
     ],
   },
@@ -70,7 +74,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'Why only 72 hours?',
-        a: 'Urgency drives action. A 72-hour window means you have three focused days to rally your community, make TikToks, and get it funded. The clock starts when your idea is approved — usually within a few hours of submission. If it doesn\'t hit the goal, all holds are released and no one gets charged. You can always resubmit and try again.',
+        a: 'Urgency drives action. A 72-hour window means you have three focused days to rally your community, make TikToks, and get it funded. The clock starts when your idea is approved — usually within a few hours of submission. If it doesn\'t hit the goal and isn\'t Force Funded, all holds are released and no one gets charged. You can always resubmit and try again.',
       },
       {
         q: 'What if the app doesn\'t get built?',

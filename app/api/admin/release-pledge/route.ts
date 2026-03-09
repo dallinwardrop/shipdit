@@ -29,16 +29,19 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Only held pledges can be released.' }, { status: 400 })
     }
 
-    // Cancel the Stripe payment intent
-    await stripe.paymentIntents.cancel(pledge.stripe_payment_intent_id)
-
-    // Mark pledge as cancelled
+    // Mark pledge as cancelled in DB first — DB is the source of truth.
+    // If the Stripe cancel subsequently fails, the webhook (payment_intent.canceled)
+    // will self-heal, or the hold expires naturally. Doing it this order means
+    // a failed DB update never leaves the PI cancelled with no record of it.
     const { error: updateError } = await admin
       .from('pledges')
       .update({ status: 'cancelled' })
       .eq('id', pledge_id)
 
     if (updateError) throw updateError
+
+    // Cancel the Stripe payment intent
+    await stripe.paymentIntents.cancel(pledge.stripe_payment_intent_id)
 
     // Send email and log (non-blocking)
     const idea = (pledge.app_ideas as unknown) as { title: string; slug: string | null } | null

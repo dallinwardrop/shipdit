@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { stripe } from '@/lib/stripe'
 import { sendEmail } from '@/lib/resend'
@@ -7,6 +8,13 @@ import type { FeatureItem } from '@/lib/supabase/types'
 
 export async function POST(request: NextRequest) {
   try {
+    // ── Require authentication ──────────────────────────────────────────────
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Authentication required.' }, { status: 401 })
+    }
+
     const body = await request.json()
 
     const {
@@ -16,7 +24,6 @@ export async function POST(request: NextRequest) {
       target_user,
       similar_apps,
       platform_preference,
-      email,
       submitter_pledge_amount,
     } = body as {
       title: string
@@ -25,7 +32,6 @@ export async function POST(request: NextRequest) {
       target_user: string
       similar_apps: string | null
       platform_preference: string
-      email: string
       submitter_pledge_amount: number
     }
 
@@ -35,47 +41,27 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Description is required.' }, { status: 400 })
     if (!target_user?.trim())
       return NextResponse.json({ error: 'Target user is required.' }, { status: 400 })
-    if (!email?.trim()) return NextResponse.json({ error: 'Email is required.' }, { status: 400 })
     if (!submitter_pledge_amount || submitter_pledge_amount < 100)
       return NextResponse.json(
         { error: 'Pledge amount must be at least $1.' },
         { status: 400 }
       )
 
-    const supabase = createAdminClient()
+    const admin = createAdminClient()
+    const userId = user.id
 
-    // Upsert user by email (create if not exists)
-    let userId: string
-
-    const { data: existingUser } = await supabase
+    // Get email from the users table (authoritative source for notifications).
+    // Fall back to auth user email if the row hasn't been created yet by trigger.
+    const { data: profile } = await admin
       .from('users')
-      .select('id')
-      .eq('email', email.trim().toLowerCase())
+      .select('email')
+      .eq('id', userId)
       .single()
+    const email = profile?.email ?? user.email ?? ''
 
-    if (existingUser) {
-      userId = existingUser.id
-    } else {
-      // Create auth user (no password — magic link / Google only)
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: email.trim().toLowerCase(),
-        email_confirm: false,
-      })
-
-      if (authError || !authData.user) {
-        console.error('Auth user creation error:', authError)
-        return NextResponse.json(
-          { error: 'Failed to create user account.' },
-          { status: 500 }
-        )
-      }
-      userId = authData.user.id
-
-      // Ensure public.users row exists (trigger should fire, but be safe)
-      await supabase.from('users').upsert({
-        id: userId,
-        email: email.trim().toLowerCase(),
-      })
+    // Ensure the public.users row exists (trigger should fire, but be safe)
+    if (!profile) {
+      await admin.from('users').upsert({ id: userId, email })
     }
 
     // Create Stripe Payment Intent with manual capture
@@ -94,7 +80,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Insert app_ideas row
-    const { data: idea, error: ideaError } = await supabase
+    const { data: idea, error: ideaError } = await admin
       .from('app_ideas')
       .insert({
         submitter_id: userId,
@@ -112,13 +98,12 @@ export async function POST(request: NextRequest) {
 
     if (ideaError || !idea) {
       console.error('Idea insert error:', ideaError)
-      // Cancel the payment intent since we failed
       await stripe.paymentIntents.cancel(paymentIntent.id)
       return NextResponse.json({ error: 'Failed to save your idea.' }, { status: 500 })
     }
 
     // Insert pledge row
-    const { error: pledgeError } = await supabase.from('pledges').insert({
+    const { error: pledgeError } = await admin.from('pledges').insert({
       user_id: userId,
       app_idea_id: idea.id,
       amount: submitter_pledge_amount,
@@ -143,7 +128,7 @@ export async function POST(request: NextRequest) {
       slug: idea.slug ?? '',
     }).catch((err) => console.warn('[submit] Admin alert failed:', err))
 
-    // Send confirmation email (non-fatal if it fails)
+    // Send confirmation email to the authenticated user's account email (non-fatal)
     try {
       const resendId = await sendEmail({
         to: email,
@@ -153,7 +138,7 @@ export async function POST(request: NextRequest) {
       })
 
       if (resendId) {
-        await supabase.from('email_log').insert({
+        await admin.from('email_log').insert({
           to_user_id: userId,
           to_email: email,
           subject: `Your idea "${title}" has been received`,
