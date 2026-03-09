@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { Suspense, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import type { FeatureItem } from '@/lib/supabase/types'
 import { loadStripe } from '@stripe/stripe-js'
@@ -151,7 +151,7 @@ function FieldGroup({ children }: { children: React.ReactNode }) {
   return <div className="space-y-1">{children}</div>
 }
 
-export default function SubmitPage() {
+function SubmitPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [form, setForm] = useState<FormState>({
@@ -530,5 +530,13 @@ export default function SubmitPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function SubmitPage() {
+  return (
+    <Suspense>
+      <SubmitPageInner />
+    </Suspense>
   )
 }

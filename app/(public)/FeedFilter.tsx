@@ -63,10 +63,25 @@ const PLEDGE_TIERS = [
   { amountCents: 100000, dollars: 1000, label: 'Patron',    perk: 'Your name in the credits',      type: 'pledge' as const },
 ]
 
+const SUPPORT_TIERS = [
+  { amountCents: 1000,  dollars: 10  },
+  { amountCents: 2500,  dollars: 25  },
+  { amountCents: 10000, dollars: 100 },
+]
+
+const SHIPDIT_MONTHLY_GOAL_CENTS = 50000 // $500/month
+
 // ── Open pledge state ─────────────────────────────────────────────────────────
 
 type OpenPledge = {
   ideaId: string
+  amountCents: number
+  phase: 'loading' | 'card' | 'success'
+  clientSecret: string | null
+  apiError: string | null
+}
+
+type OpenSupport = {
   amountCents: number
   phase: 'loading' | 'card' | 'success'
   clientSecret: string | null
@@ -79,10 +94,14 @@ function InlinePledgeForm({
   clientSecret,
   amountCents,
   onSuccess,
+  confirmText = 'CONFIRM PLEDGE',
+  noteText,
 }: {
   clientSecret: string
   amountCents: number
   onSuccess: () => void
+  confirmText?: string
+  noteText?: string
 }) {
   const stripe = useStripe()
   const elements = useElements()
@@ -112,7 +131,7 @@ function InlinePledgeForm({
   return (
     <div className="space-y-2">
       <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-        {formatDollars(amountCents)} — held on card, not charged until goal is reached.
+        {noteText ?? `${formatDollars(amountCents)} — held on card, not charged until goal is reached.`}
       </div>
       <div className="win95-sunken p-2" style={{ background: '#fff' }}>
         <CardElement options={cardElementOptions} />
@@ -134,8 +153,173 @@ function InlinePledgeForm({
           ...(confirming ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
         }}
       >
-        {confirming ? '⌛ Processing...' : 'CONFIRM PLEDGE'}
+        {confirming ? '⌛ Processing...' : confirmText}
       </button>
+    </div>
+  )
+}
+
+// ── Shipdit pinned support card ───────────────────────────────────────────────
+
+function ShipditCard({
+  openSupport,
+  onTierClick,
+  onClose,
+  onSuccess,
+}: {
+  openSupport: OpenSupport | null
+  onTierClick: (amountCents: number) => void
+  onClose: () => void
+  onSuccess: () => void
+}) {
+  const isPledging = openSupport !== null
+
+  return (
+    <div
+      className="win95-window"
+      style={{ maxWidth: '100%', outline: '2px solid #5a3000' }}
+    >
+      {/* Title bar */}
+      <Link href="/support" style={{ textDecoration: 'none', color: 'inherit', display: 'block' }}>
+        <div className="win95-title-bar" style={{ background: '#5a3000' }}>
+          <span className="font-vt323 text-lg truncate flex-1">⭐ Shipdit</span>
+          <span
+            className="text-xs flex-shrink-0 mx-1 px-1"
+            style={{
+              fontFamily: 'Share Tech Mono, monospace',
+              color: '#5a3000',
+              background: '#ffd080',
+              border: '1px solid #a06000',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            PLATFORM
+          </span>
+          <div className="flex gap-1 flex-shrink-0">
+            {['_', '□', '✕'].map((ch) => (
+              <div key={ch} className="win95-btn" style={{ minWidth: 16, padding: '0 6px', fontSize: 10, lineHeight: '16px' }}>
+                {ch}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Body */}
+        <div className="p-3 space-y-2">
+          <p className="text-sm leading-snug" style={{ color: '#000' }}>
+            Built and maintained by one person. Your support keeps the platform running and funds future development.
+          </p>
+
+          {/* Goal */}
+          <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000' }}>
+            Platform support goal: ${(SHIPDIT_MONTHLY_GOAL_CENTS / 100).toLocaleString()}/month — View details →
+          </div>
+
+          {/* Stats row */}
+          <div className="win95-sunken p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000', fontWeight: 'bold' }}>
+            ⭐ OFFICIAL SHIPDIT PROJECT
+          </div>
+        </div>
+      </Link>
+
+      {/* Support section */}
+      <div className="px-3 pb-3 space-y-2">
+        {/* Success state */}
+        {openSupport?.phase === 'success' ? (
+          <div
+            className="p-3 text-center"
+            style={{
+              background: '#d0ffd0',
+              border: '2px solid',
+              borderColor: '#008000 #004000 #004000 #008000',
+              fontFamily: 'Share Tech Mono, monospace',
+            }}
+          >
+            <div className="font-vt323 text-2xl" style={{ color: '#004000' }}>✓ Thank you!</div>
+            <div className="text-xs" style={{ color: '#004000' }}>
+              {formatDollars(openSupport.amountCents)} — your support means a lot.
+            </div>
+          </div>
+
+        ) : isPledging ? (
+          /* Expanded support form */
+          <div className="win95-sunken p-2 space-y-2" style={{ background: '#f8f8f8' }}>
+            <div className="flex justify-between items-center">
+              <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11 }}>
+                <span className="font-vt323" style={{ fontSize: 17, color: '#5a3000' }}>
+                  {formatDollars(openSupport!.amountCents)}
+                </span>
+                <span style={{ marginLeft: 6, opacity: 0.65 }}>— Platform Support</span>
+              </div>
+              <button
+                onClick={onClose}
+                style={{
+                  fontFamily: 'monospace', fontSize: 11, lineHeight: '16px',
+                  padding: '0 6px', background: '#c0c0c0', color: '#000',
+                  border: '2px solid', borderColor: '#fff #808080 #808080 #fff',
+                  cursor: 'pointer', flexShrink: 0,
+                }}
+                aria-label="Cancel"
+              >
+                ✕
+              </button>
+            </div>
+
+            {openSupport!.phase === 'loading' && (
+              <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', opacity: 0.6 }}>
+                ⌛ Preparing...
+              </div>
+            )}
+
+            {openSupport!.apiError && (
+              <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: 'darkred' }}>
+                ⚠ {openSupport!.apiError}
+              </div>
+            )}
+
+            {openSupport!.phase === 'card' && openSupport!.clientSecret && (
+              <InlinePledgeForm
+                clientSecret={openSupport!.clientSecret}
+                amountCents={openSupport!.amountCents}
+                onSuccess={onSuccess}
+                confirmText="SUPPORT SHIPDIT"
+                noteText={`${formatDollars(openSupport!.amountCents)} — charged immediately to support the platform.`}
+              />
+            )}
+          </div>
+
+        ) : (
+          /* Support tier buttons */
+          <>
+            <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000' }}>
+              Support the platform
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+              {SUPPORT_TIERS.map(({ amountCents, dollars }) => (
+                <button
+                  key={amountCents}
+                  type="button"
+                  onClick={() => onTierClick(amountCents)}
+                  className="win95-btn"
+                  style={{
+                    textAlign: 'center',
+                    padding: '4px 2px',
+                    fontFamily: 'VT323, monospace',
+                    fontSize: '1rem',
+                    lineHeight: 1.2,
+                    cursor: 'pointer',
+                    background: '#5a3000',
+                    color: '#fff',
+                    borderColor: '#8b5e00 #2d1800 #2d1800 #8b5e00',
+                  }}
+                >
+                  ${dollars}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }
@@ -474,6 +658,7 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
   const [active, setActive] = useState<FilterKey>('pledges')
   const [search, setSearch] = useState('')
   const [openPledge, setOpenPledge] = useState<OpenPledge | null>(null)
+  const [openSupport, setOpenSupport] = useState<OpenSupport | null>(null)
 
   const query = search.trim().toLowerCase()
 
@@ -489,6 +674,7 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
 
   async function startPledge(idea: IdeaWithTopDonor, amountCents: number) {
     // Immediately open the card in loading state (collapses any other open card)
+    setOpenSupport(null)
     setOpenPledge({ ideaId: idea.id, amountCents, phase: 'loading', clientSecret: null, apiError: null })
 
     const tier = PLEDGE_TIERS.find((t) => t.amountCents === amountCents)
@@ -533,6 +719,41 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
       setOpenPledge(null)
       router.refresh()
     }, 2000)
+  }
+
+  async function startSupport(amountCents: number) {
+    setOpenPledge(null)
+    setOpenSupport({ amountCents, phase: 'loading', clientSecret: null, apiError: null })
+
+    const res = await fetch('/api/support', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: amountCents, mode: 'one_time' }),
+    })
+
+    if (res.status === 401) {
+      router.push('/login?redirectTo=/')
+      setOpenSupport(null)
+      return
+    }
+
+    const json = await res.json()
+
+    if (!res.ok) {
+      setOpenSupport((prev) =>
+        prev ? { ...prev, phase: 'card', apiError: json.error ?? 'Something went wrong.' } : prev
+      )
+      return
+    }
+
+    setOpenSupport((prev) =>
+      prev ? { ...prev, phase: 'card', clientSecret: json.client_secret, apiError: null } : prev
+    )
+  }
+
+  function handleSupportSuccess() {
+    setOpenSupport((prev) => (prev ? { ...prev, phase: 'success' } : prev))
+    setTimeout(() => setOpenSupport(null), 2500)
   }
 
   return (
@@ -593,7 +814,7 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
         </div>
 
         {/* Grid */}
-        {filtered.length === 0 ? (
+        {filtered.length === 0 && active !== 'pledges' ? (
           <div className="win95-window max-w-lg mx-auto">
             <div className="win95-title-bar">
               <span className="font-vt323 text-lg">No Results</span>
@@ -604,6 +825,14 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {active === 'pledges' && (
+              <ShipditCard
+                openSupport={openSupport}
+                onTierClick={startSupport}
+                onClose={() => setOpenSupport(null)}
+                onSuccess={handleSupportSuccess}
+              />
+            )}
             {filtered.map((idea) => (
               <IdeaCard
                 key={idea.id}
