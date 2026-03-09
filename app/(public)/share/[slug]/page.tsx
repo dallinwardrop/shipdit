@@ -43,7 +43,7 @@ export default async function SharePage({
   // TikTok script
   const goalSnippet = (idea.goal_description ?? '').slice(0, 100).trimEnd() +
     ((idea.goal_description ?? '').length > 100 ? '…' : '')
-  const tiktokScript = `I just submitted an app idea to Shipdit and put real money behind it 💰 If enough people back it within 72 hours of going live, someone actually builds it — and everyone gets it free. Here's my idea: ${goalSnippet}. The clock starts when it gets approved — usually within a few hours. Back it at shipdit.co 🚀 #shipdit #fundmyapp #buildit`
+  const tiktokScript = `I just submitted an app idea to Shipdit and put real money behind it 💰 If enough people back it within 72 hours of going live, someone actually builds it — and the whole community gets to use it, kept alive by backers. Here's my idea: ${goalSnippet}. The clock starts when it gets approved — usually within a few hours. Back it at shipdit.co 🚀 #shipdit #fundmyapp #buildit`
   const tiktokCaption = '#shipdit #fundmyapp #buildit #appidea'
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? ''
@@ -53,7 +53,7 @@ export default async function SharePage({
 
   const shareCopy = {
     text: `I just submitted an app idea and need your help funding it. $10 gets you notified when it launches. Check it out: ${shareUrl}`,
-    linkedin: `I just submitted an idea to Shipdit — a platform where the community funds apps and they get built free to use. If we hit the goal, this gets built. Would love your support: ${shareUrl}`,
+    linkedin: `I just submitted an idea to Shipdit — a platform where the community funds apps and keeps them alive. If we hit the goal, this gets built. Would love your support: ${shareUrl}`,
     twitter: `just submitted an app idea to @shipdit — if we hit the funding goal it gets built free to use, kept alive by backers. back it here: ${shareUrl}`,
   }
 
@@ -66,30 +66,38 @@ export default async function SharePage({
         </div>
         <div className="p-4 space-y-3">
           <h1 className="font-vt323 text-4xl leading-tight" style={{ color: '#000080' }}>
-            YOUR IDEA IS LIVE IN THE QUEUE
+            YOUR IDEA IS IN REVIEW
           </h1>
           <p className="font-vt323 text-2xl" style={{ color: '#000' }}>
             &ldquo;{idea.title}&rdquo;
           </p>
-          <div className="win95-sunken p-3 text-sm">
-            You&apos;re already{' '}
+          <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+            Your idea is in review — share it now to build momentum. You&apos;re already{' '}
             <strong>{formatDollars(idea.submitter_pledge_amount)}</strong> toward the goal.
-            Your pledge is held — never charged unless funding completes within 72 hours of going live. Ideas are typically approved within 2–3 hours of submission.
-          </div>
+          </p>
         </div>
       </div>
 
-      {/* 50-friends CTA */}
+      {/* Referral link — most prominent */}
       <div className="win95-window">
         <div className="win95-title-bar">
-          <span className="font-vt323 text-xl">funding_strategy.txt</span>
+          <span className="font-vt323 text-xl">your_link.txt</span>
         </div>
         <div className="p-4 space-y-3">
-          <p className="font-vt323 text-2xl" style={{ color: '#000080' }}>
-            Most apps get funded when the submitter shares with 50 people.
+          <p className="text-xs font-bold" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+            YOUR REFERRAL LINK — share this everywhere
+          </p>
+          <div className="win95-sunken p-2 flex gap-2 items-center">
+            <code className="text-xs flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+              {shareUrl}
+            </code>
+            <CopyButton text={shareUrl} />
+          </div>
+          <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+            Your link is live now — friends can back your idea immediately. Every backer helps it get prioritized and built faster.
           </p>
 
-          {/* Live counter */}
+          {/* Backer counter */}
           <div className="win95-raised p-3 flex items-center gap-4">
             <div>
               <span className="font-vt323 text-5xl" style={{ color: '#000080' }}>
@@ -107,32 +115,19 @@ export default async function SharePage({
                 />
               </div>
               <p className="text-xs mt-1" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                {refConversions} of {TARGET} friends backed it
+                {refConversions} of {TARGET} friends backed via your link
               </p>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Share links */}
+      {/* Share copy */}
       <div className="win95-window">
         <div className="win95-title-bar">
           <span className="font-vt323 text-xl">share_now.exe</span>
         </div>
-        <div className="p-4 space-y-4">
-          {/* Referral link */}
-          <div className="space-y-1">
-            <p className="text-xs font-bold" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-              YOUR REFERRAL LINK
-            </p>
-            <div className="win95-sunken p-2 flex gap-2 items-center">
-              <code className="text-xs flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                {shareUrl}
-              </code>
-              <CopyButton text={shareUrl} />
-            </div>
-          </div>
-
+        <div className="p-4 space-y-3">
           {/* TEXT */}
           <div className="win95-raised p-3 space-y-2">
             <p
@@ -198,32 +193,6 @@ export default async function SharePage({
             <CopyButton text={tiktokScript} label="Copy Script" />
           </div>
 
-          {/* Referral link */}
-          <div className="space-y-1">
-            <p className="text-xs font-bold" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#400080' }}>
-              🔗 YOUR REFERRAL LINK — put this in your bio or comments
-            </p>
-            <div className="win95-sunken p-2 flex gap-2 items-center">
-              <code className="text-xs flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
-                {shareUrl}
-              </code>
-              <CopyButton text={shareUrl} label="Copy Link" />
-            </div>
-
-            {/* Referral counter */}
-            <div
-              className="win95-raised p-2 flex items-center gap-3"
-              style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12 }}
-            >
-              <span className="font-vt323" style={{ fontSize: 28, color: '#400080' }}>
-                {refConversions}
-              </span>
-              <span>
-                {refConversions === 1 ? 'backer came' : 'backers came'} from your link
-              </span>
-            </div>
-          </div>
-
           {/* Caption */}
           <div className="space-y-1">
             <p className="text-xs font-bold" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#400080' }}>
@@ -244,7 +213,7 @@ export default async function SharePage({
               {[
                 'Film yourself explaining the problem your app solves',
                 'Show the pain point — make it relatable',
-                'Post 3-5 times for best reach — each video finds new audiences',
+                'The 72-hour window is real — every share counts, and momentum builds fast',
               ].map((tip, i) => (
                 <div
                   key={i}
@@ -265,7 +234,7 @@ export default async function SharePage({
         <div className="p-3">
           {['submitted', 'under_review', 'awaiting_price'].includes(idea.status) && (
             <div className="win95-sunken p-3 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-              ⏳ Your idea is in the review queue. You'll get an email when it's approved and priced. Once it goes live you'll get a share link to send to friends.
+              ⏳ Your idea is in the review queue. You&apos;ll get an email when it&apos;s approved and priced. Your link is live now — friends can back your idea immediately. Every backer helps it get prioritized and built faster.
             </div>
           )}
           {idea.status === 'priced' && (
