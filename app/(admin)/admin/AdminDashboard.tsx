@@ -241,7 +241,7 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
         </a>
       </div>
       <div className="p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', borderTop: '1px solid #808080', color: '#404040' }}>
-        {ideas.filter(i => ['submitted', 'under_review'].includes(i.status)).length} awaiting review
+        {ideas.filter(i => i.status === 'under_review').length} awaiting review
       </div>
     </div>
   )
@@ -253,7 +253,7 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
       <div className="win95-title-bar">
         <span className="font-vt323 text-lg">Pipeline</span>
         <span className="text-xs opacity-70 ml-2">
-          {ideas.filter(i => ['submitted','under_review','awaiting_price','priced','live'].includes(i.status)).length} ideas
+          {ideas.filter(i => ['under_review','awaiting_price','priced','live'].includes(i.status)).length} ideas
         </span>
       </div>
       <div style={{ overflowX: 'auto', padding: 8 }}>
@@ -321,7 +321,7 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
                         )}
 
                         {/* UNDER REVIEW: Approve / Reject */}
-                        {['submitted', 'under_review'].includes(status) && (
+                        {status === 'under_review' && (
                           <div className="space-y-1">
                             <div style={{ display: 'flex', gap: 4 }}>
                               <button

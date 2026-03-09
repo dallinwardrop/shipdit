@@ -11,7 +11,7 @@ export default async function AdminPage() {
     admin
       .from('app_ideas')
       .select('id, title, slug, status, amount_raised, build_price, backer_count, created_at, submitter_id, goal_description, features, target_user, similar_apps, platform_preference, submitter_pledge_amount, admin_notes')
-      .in('status', ['submitted', 'under_review', 'awaiting_price', 'priced', 'live', 'funded'])
+      .in('status', ['under_review', 'awaiting_price', 'priced', 'live', 'funded'])
       .order('created_at', { ascending: false }),
     admin
       .from('pledges')
