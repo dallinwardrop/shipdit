@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import type { FeatureItem } from '@/lib/supabase/types'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
@@ -153,7 +153,12 @@ function FieldGroup({ children }: { children: React.ReactNode }) {
 
 export default function SubmitPage() {
   const router = useRouter()
-  const [form, setForm] = useState<FormState>(DEFAULT_FORM)
+  const searchParams = useSearchParams()
+  const [form, setForm] = useState<FormState>({
+    ...DEFAULT_FORM,
+    title: searchParams.get('title') ?? '',
+    goal_description: searchParams.get('description') ?? '',
+  })
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
@@ -518,7 +523,7 @@ export default function SubmitPage() {
           <p>✓ Funds are only captured when the full goal is reached.</p>
           <p>✓ If the minimum build goal isn&apos;t hit within 72 hours of going live, your hold is fully released.</p>
           <p>✓ Once built, the app is free for the entire community forever.</p>
-          <p>🏆 <strong>Backer Perks:</strong> The #1 backer names the app or hides an easter egg. The #2 backer gets whichever perk #1 didn&apos;t choose.</p>
+          <p>🏆 <strong>Backer Perks:</strong> The #1 backer submits up to 3 name suggestions — we approve the ones that meet our standards, they pick their favorite. Or they can hide an easter egg instead. The #2 backer gets whichever perk #1 didn&apos;t choose.</p>
           <p style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid #c0c0c0' }}>
             🛡️ <strong>Build Guarantee:</strong> Once funded, a working MVP is delivered within 72 hours — or everyone gets a full automatic refund.
           </p>

@@ -104,7 +104,7 @@ export default async function FundIdeaPage({
   }
   const topBackers = Object.values(userTotals).sort((a, b) => b.total - a.total).slice(0, 2)
   const perkSlots = [
-    { rank: 1, label: '#1 Backer', perk: 'Name the app or hide an easter egg — your choice', icon: '👑' },
+    { rank: 1, label: '#1 Backer', perk: 'Submit up to 3 name suggestions — we approve, you pick. Or hide an easter egg.', icon: '👑' },
     { rank: 2, label: '#2 Backer', perk: 'Gets whichever perk #1 didn\'t choose', icon: '🥈' },
   ]
 

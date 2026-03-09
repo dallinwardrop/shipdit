@@ -10,7 +10,7 @@ async function getAllIdeas(): Promise<IdeaWithTopDonor[]> {
   const { data: ideas, error } = await supabase
     .from('app_ideas')
     .select('*')
-    .in('status', ['submitted', 'under_review', 'awaiting_price', 'priced', 'live', 'funded', 'building', 'in_review', 'built'])
+    .in('status', ['submitted', 'under_review', 'awaiting_price', 'priced', 'live', 'funded', 'building', 'in_review', 'built', 'expired'])
 
   if (error || !ideas) return []
 

@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
       .eq('id', app_idea_id)
       .single()
 
-    const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live']
+    const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live', 'funded', 'building', 'in_review', 'built']
     if (!idea) return NextResponse.json({ error: 'Idea not found.' }, { status: 404 })
     if (!PLEDGE_OPEN.includes(idea.status))
       return NextResponse.json({ error: 'This idea is not currently accepting pledges.' }, { status: 400 })

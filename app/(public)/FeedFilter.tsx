@@ -2,11 +2,28 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
 import { formatDollars, progressPercent, hoursUntil, formatTimeLeft, truncate } from '@/lib/utils'
 import type { Database } from '@/lib/supabase/types'
 
 type AppIdea = Database['public']['Tables']['app_ideas']['Row']
 export type IdeaWithTopDonor = AppIdea & { top_donor_name: string | null }
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+const cardElementOptions = {
+  style: {
+    base: {
+      fontFamily: 'Share Tech Mono, monospace',
+      fontSize: '14px',
+      color: '#000',
+      '::placeholder': { color: '#808080' },
+    },
+    invalid: { color: 'darkred' },
+  },
+}
 
 // ── Status badge config ───────────────────────────────────────────────────────
 
@@ -20,23 +37,124 @@ const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }>
   building:       { label: 'BEING BUILT',        color: '#000060', bg: '#c0c8ff' },
   in_review:      { label: 'BEING BUILT',        color: '#000060', bg: '#c0c8ff' },
   built:          { label: 'SHIPD',              color: '#300060', bg: '#e8c0ff' },
+  expired:        { label: 'EXPIRED',            color: '#808080', bg: '#d0d0d0' },
 }
 
 // ── Filter definitions ────────────────────────────────────────────────────────
 
-type FilterKey = 'all' | 'pending' | 'pledges' | 'funded' | 'built'
+type FilterKey = 'all' | 'pending' | 'pledges' | 'funded' | 'built' | 'unfunded'
 
-const FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = [
+const MAIN_FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = [
   { key: 'all',     label: 'All',               statuses: null },
   { key: 'pending', label: 'Pending Review',     statuses: ['submitted', 'under_review', 'awaiting_price'] },
   { key: 'pledges', label: 'Accepting Pledges',  statuses: ['priced', 'live'] },
   { key: 'funded',  label: 'Funded',             statuses: ['funded', 'building', 'in_review'] },
-  { key: 'built',   label: 'Shipd',               statuses: ['built'] },
+  { key: 'built',   label: 'Shipd',              statuses: ['built'] },
 ]
+
+const EXPIRED_STATUSES = ['expired']
+
+// ── Pledge tiers ──────────────────────────────────────────────────────────────
+
+const PLEDGE_TIERS = [
+  { amountCents: 1000,   dollars: 10,   label: 'Watcher',   perk: 'Get notified when it launches', type: 'watch'  as const },
+  { amountCents: 10000,  dollars: 100,  label: 'Supporter', perk: 'Supporter credit in the app',   type: 'pledge' as const },
+  { amountCents: 50000,  dollars: 500,  label: 'Backer',    perk: 'Early demo access',             type: 'pledge' as const },
+  { amountCents: 100000, dollars: 1000, label: 'Patron',    perk: 'Your name in the credits',      type: 'pledge' as const },
+]
+
+// ── Open pledge state ─────────────────────────────────────────────────────────
+
+type OpenPledge = {
+  ideaId: string
+  amountCents: number
+  phase: 'loading' | 'card' | 'success'
+  clientSecret: string | null
+  apiError: string | null
+}
+
+// ── Inline card form (must render inside <Elements>) ──────────────────────────
+
+function InlinePledgeForm({
+  clientSecret,
+  amountCents,
+  onSuccess,
+}: {
+  clientSecret: string
+  amountCents: number
+  onSuccess: () => void
+}) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const [confirming, setConfirming] = useState(false)
+  const [cardError, setCardError] = useState<string | null>(null)
+
+  const handleConfirm = async () => {
+    if (!stripe || !elements) return
+    setConfirming(true)
+    setCardError(null)
+
+    const cardElement = elements.getElement(CardElement)
+    if (!cardElement) { setConfirming(false); return }
+
+    const { error } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: cardElement },
+    })
+
+    if (error) {
+      setCardError(error.message ?? 'Payment failed.')
+      setConfirming(false)
+    } else {
+      onSuccess()
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+        {formatDollars(amountCents)} — held on card, not charged until goal is reached.
+      </div>
+      <div className="win95-sunken p-2" style={{ background: '#fff' }}>
+        <CardElement options={cardElementOptions} />
+      </div>
+      {cardError && (
+        <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: 'darkred' }}>
+          ⚠ {cardError}
+        </div>
+      )}
+      <button
+        type="button"
+        onClick={handleConfirm}
+        disabled={confirming || !stripe}
+        className="win95-btn win95-btn-primary w-full"
+        style={{
+          padding: '8px',
+          fontSize: '1rem',
+          fontFamily: 'VT323, monospace',
+          ...(confirming ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+        }}
+      >
+        {confirming ? '⌛ Processing...' : 'CONFIRM PLEDGE'}
+      </button>
+    </div>
+  )
+}
 
 // ── Card ──────────────────────────────────────────────────────────────────────
 
-function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
+function IdeaCard({
+  idea,
+  openPledge,
+  onTierClick,
+  onClose,
+  onSuccess,
+}: {
+  idea: IdeaWithTopDonor
+  openPledge: OpenPledge | null
+  onTierClick: (amountCents: number) => void
+  onClose: () => void
+  onSuccess: () => void
+}) {
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const hours = hoursUntil(idea.funding_deadline)
   const isCritical = hours !== null && hours >= 0 && hours < 6
@@ -48,16 +166,23 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
     ? `#${String(idea.app_number).padStart(3, '0')}`
     : null
 
-  const isLive = idea.status === 'live'
-  const isFunded = idea.status === 'funded'
+  const isLive     = idea.status === 'live'
+  const isFunded   = idea.status === 'funded'
   const isBuilding = ['building', 'in_review'].includes(idea.status)
+  const isExpired  = idea.status === 'expired'
+  const isPledging = openPledge !== null
+
+  const activeTier = PLEDGE_TIERS.find((t) => t.amountCents === openPledge?.amountCents)
 
   return (
     <div className="win95-window" style={{ maxWidth: '100%', ...(isLive && isCritical ? { outline: '2px solid #cc0000' } : {}) }}>
-      <Link href={`/fund/${idea.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }} className="cursor-pointer hover:brightness-95">
-
+      <Link
+        href={`/fund/${idea.slug}`}
+        style={{ textDecoration: 'none', color: 'inherit', display: 'block', opacity: isExpired ? 0.8 : 1 }}
+        className={isExpired ? '' : 'cursor-pointer hover:brightness-95'}
+      >
         {/* Title bar */}
-        <div className="win95-title-bar">
+        <div className="win95-title-bar" style={isExpired ? { background: '#808080' } : {}}>
           <span className="font-vt323 text-lg truncate flex-1">{idea.title}</span>
           {appLabel && (
             <span
@@ -98,7 +223,6 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 
         {/* Body */}
         <div className="p-3 space-y-2">
-          {/* Subtitle: working title label for pre-live ideas */}
           {isPreLive && (
             <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
               working title
@@ -207,41 +331,136 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
         </div>
       </Link>
 
-      {/* Quick-pledge buttons — live and funded ideas */}
+      {/* Revive button — expired ideas */}
+      {isExpired && (
+        <div className="px-3 pb-3">
+          <a
+            href={`/submit?title=${encodeURIComponent(idea.title)}&description=${encodeURIComponent(idea.goal_description ?? '')}`}
+            onClick={(e) => e.stopPropagation()}
+            className="win95-btn text-xs"
+            style={{
+              display: 'block',
+              textAlign: 'center',
+              textDecoration: 'none',
+              fontFamily: 'Share Tech Mono, monospace',
+              color: '#000080',
+            }}
+          >
+            Revive This →
+          </a>
+        </div>
+      )}
+
+      {/* Pledge section — live and funded ideas */}
       {(isLive || isFunded) && (
-        <div className="px-3 pb-3 space-y-1">
-          {isFunded && (
-            <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#004000' }}>
-              Funded ✓ — keep backing it
+        <div className="px-3 pb-3 space-y-2">
+
+          {/* ── Success state ── */}
+          {openPledge?.phase === 'success' ? (
+            <div
+              className="p-3 text-center"
+              style={{
+                background: '#d0ffd0',
+                border: '2px solid',
+                borderColor: '#008000 #004000 #004000 #008000',
+                fontFamily: 'Share Tech Mono, monospace',
+              }}
+            >
+              <div className="font-vt323 text-2xl" style={{ color: '#004000' }}>✓ Pledged!</div>
+              <div className="text-xs" style={{ color: '#004000' }}>
+                {formatDollars(openPledge.amountCents)} authorized — card held until goal is reached.
+              </div>
             </div>
+
+          ) : isPledging ? (
+            /* ── Expanded pledge form ── */
+            <div className="win95-sunken p-2 space-y-2" style={{ background: '#f8f8f8' }}>
+              {/* Header row: selected tier label + X */}
+              <div className="flex justify-between items-center">
+                <div style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 11 }}>
+                  <span className="font-vt323" style={{ fontSize: 17, color: '#000080' }}>
+                    {formatDollars(openPledge.amountCents)}
+                  </span>
+                  {activeTier && (
+                    <span style={{ marginLeft: 6, opacity: 0.65 }}>— {activeTier.label}</span>
+                  )}
+                </div>
+                <button
+                  onClick={onClose}
+                  style={{
+                    fontFamily: 'monospace',
+                    fontSize: 11,
+                    lineHeight: '16px',
+                    padding: '0 6px',
+                    background: '#c0c0c0',
+                    color: '#000',
+                    border: '2px solid',
+                    borderColor: '#fff #808080 #808080 #fff',
+                    cursor: 'pointer',
+                    flexShrink: 0,
+                  }}
+                  aria-label="Cancel"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Loading */}
+              {openPledge.phase === 'loading' && (
+                <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', opacity: 0.6 }}>
+                  ⌛ Preparing...
+                </div>
+              )}
+
+              {/* API error (e.g. already pledged, idea expired) */}
+              {openPledge.apiError && (
+                <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: 'darkred' }}>
+                  ⚠ {openPledge.apiError}
+                </div>
+              )}
+
+              {/* Card form */}
+              {openPledge.phase === 'card' && openPledge.clientSecret && (
+                <InlinePledgeForm
+                  clientSecret={openPledge.clientSecret}
+                  amountCents={openPledge.amountCents}
+                  onSuccess={onSuccess}
+                />
+              )}
+            </div>
+
+          ) : (
+            /* ── Tier buttons ── */
+            <>
+              {isFunded && (
+                <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#004000' }}>
+                  Funded ✓ — keep backing it
+                </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+                {PLEDGE_TIERS.map(({ amountCents, dollars, label, perk }) => (
+                  <button
+                    key={amountCents}
+                    type="button"
+                    title={perk}
+                    onClick={() => onTierClick(amountCents)}
+                    className="win95-btn win95-btn-primary"
+                    style={{
+                      textAlign: 'center',
+                      padding: '4px 2px',
+                      fontFamily: 'VT323, monospace',
+                      fontSize: '0.95rem',
+                      lineHeight: 1.2,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    ${dollars.toLocaleString()}<br />
+                    <span style={{ fontSize: '0.7rem', opacity: 0.85 }}>{label}</span>
+                  </button>
+                ))}
+              </div>
+            </>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
-            {([
-              { amount: 10,   label: 'Watcher',   perk: 'Get notified when it launches' },
-              { amount: 100,  label: 'Supporter',  perk: 'Supporter credit in the app' },
-              { amount: 500,  label: 'Backer',     perk: 'Early demo access' },
-              { amount: 1000, label: 'Patron',     perk: 'Your name in the credits' },
-            ] as const).map(({ amount, label, perk }) => (
-              <a
-                key={amount}
-                href={`/fund/${idea.slug}?amount=${amount}`}
-                className="win95-btn win95-btn-primary"
-                title={perk}
-                style={{
-                  textAlign: 'center',
-                  textDecoration: 'none',
-                  padding: '4px 2px',
-                  fontFamily: 'VT323, monospace',
-                  fontSize: '0.95rem',
-                  lineHeight: 1.2,
-                  display: 'block',
-                }}
-              >
-                ${amount.toLocaleString()}<br />
-                <span style={{ fontSize: '0.7rem', opacity: 0.85 }}>{label}</span>
-              </a>
-            ))}
-          </div>
         </div>
       )}
     </div>
@@ -251,75 +470,153 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
 // ── Filter bar + grid ─────────────────────────────────────────────────────────
 
 export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
+  const router = useRouter()
   const [active, setActive] = useState<FilterKey>('pledges')
   const [search, setSearch] = useState('')
+  const [openPledge, setOpenPledge] = useState<OpenPledge | null>(null)
 
   const query = search.trim().toLowerCase()
 
   const filtered = ideas
     .filter((idea) => {
+      if (active === 'unfunded') return EXPIRED_STATUSES.includes(idea.status)
+      if (EXPIRED_STATUSES.includes(idea.status)) return false
       if (active === 'all') return true
-      const f = FILTERS.find((f) => f.key === active)
+      const f = MAIN_FILTERS.find((f) => f.key === active)
       return f?.statuses?.includes(idea.status) ?? true
     })
     .filter((idea) => !query || idea.title.toLowerCase().includes(query))
 
-  return (
-    <div className="space-y-4">
-      {/* Filter bar */}
-      <div className="win95-window">
-        <div className="win95-title-bar">
-          <span className="font-vt323 text-lg">Filter</span>
-        </div>
-        <div className="p-2 space-y-2">
-          <input
-            type="search"
-            className="win95-input w-full"
-            placeholder="Search ideas..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-          <div className="flex flex-wrap gap-2">
-          {FILTERS.map((f) => (
-            <button
-              key={f.key}
-              onClick={() => setActive(f.key)}
-              className="win95-btn text-xs"
-              style={
-                active === f.key
-                  ? { background: '#000080', color: '#fff', borderColor: '#000040 #8080ff #8080ff #000040' }
-                  : {}
-              }
-            >
-              {f.label}
-              {f.statuses && (
-                <span style={{ marginLeft: 4, opacity: 0.7 }}>
-                  ({ideas.filter((i) => f.statuses!.includes(i.status)).length})
-                </span>
-              )}
-            </button>
-          ))}
-          </div>
-        </div>
-      </div>
+  async function startPledge(idea: IdeaWithTopDonor, amountCents: number) {
+    // Immediately open the card in loading state (collapses any other open card)
+    setOpenPledge({ ideaId: idea.id, amountCents, phase: 'loading', clientSecret: null, apiError: null })
 
-      {/* Grid */}
-      {filtered.length === 0 ? (
-        <div className="win95-window max-w-lg mx-auto">
+    const tier = PLEDGE_TIERS.find((t) => t.amountCents === amountCents)
+
+    const res = await fetch('/api/pledge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        app_idea_id: idea.id,
+        amount: amountCents,
+        type: tier?.type ?? 'pledge',
+      }),
+    })
+
+    if (res.status === 401) {
+      router.push('/login?redirectTo=/')
+      setOpenPledge(null)
+      return
+    }
+
+    const json = await res.json()
+
+    if (!res.ok) {
+      setOpenPledge((prev) =>
+        prev?.ideaId === idea.id
+          ? { ...prev, phase: 'card', apiError: json.error ?? 'Something went wrong.' }
+          : prev
+      )
+      return
+    }
+
+    setOpenPledge((prev) =>
+      prev?.ideaId === idea.id
+        ? { ...prev, phase: 'card', clientSecret: json.client_secret, apiError: null }
+        : prev
+    )
+  }
+
+  function handleSuccess() {
+    setOpenPledge((prev) => (prev ? { ...prev, phase: 'success' } : prev))
+    setTimeout(() => {
+      setOpenPledge(null)
+      router.refresh()
+    }, 2000)
+  }
+
+  return (
+    <Elements stripe={stripePromise}>
+      <div className="space-y-4">
+        {/* Filter bar */}
+        <div className="win95-window">
           <div className="win95-title-bar">
-            <span className="font-vt323 text-lg">No Results</span>
+            <span className="font-vt323 text-lg">Filter</span>
           </div>
-          <div className="p-6 text-center text-sm">
-            {query ? `No ideas matching "${search}".` : 'Nothing in this category yet.'}
+          <div className="p-2 space-y-2">
+            <input
+              type="search"
+              className="win95-input w-full"
+              placeholder="Search ideas..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            <div className="flex flex-wrap gap-2">
+              {MAIN_FILTERS.map((f) => (
+                <button
+                  key={f.key}
+                  onClick={() => setActive(f.key)}
+                  className="win95-btn text-xs"
+                  style={
+                    active === f.key
+                      ? { background: '#000080', color: '#fff', borderColor: '#000040 #8080ff #8080ff #000040' }
+                      : {}
+                  }
+                >
+                  {f.label}
+                  {f.statuses && (
+                    <span style={{ marginLeft: 4, opacity: 0.7 }}>
+                      ({ideas.filter((i) => f.statuses!.includes(i.status)).length})
+                    </span>
+                  )}
+                </button>
+              ))}
+              {/* Separator */}
+              <div style={{ width: 1, background: '#808080', alignSelf: 'stretch', margin: '0 4px' }} />
+              {/* Unfunded — visually separated */}
+              <button
+                onClick={() => setActive('unfunded')}
+                className="win95-btn text-xs"
+                style={
+                  active === 'unfunded'
+                    ? { background: '#606060', color: '#fff', borderColor: '#404040 #a0a0a0 #a0a0a0 #404040' }
+                    : { color: '#606060' }
+                }
+              >
+                Unfunded
+                <span style={{ marginLeft: 4, opacity: 0.7 }}>
+                  ({ideas.filter((i) => EXPIRED_STATUSES.includes(i.status)).length})
+                </span>
+              </button>
+            </div>
           </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-          {filtered.map((idea) => (
-            <IdeaCard key={idea.id} idea={idea} />
-          ))}
-        </div>
-      )}
-    </div>
+
+        {/* Grid */}
+        {filtered.length === 0 ? (
+          <div className="win95-window max-w-lg mx-auto">
+            <div className="win95-title-bar">
+              <span className="font-vt323 text-lg">No Results</span>
+            </div>
+            <div className="p-6 text-center text-sm">
+              {query ? `No ideas matching "${search}".` : 'Nothing in this category yet.'}
+            </div>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {filtered.map((idea) => (
+              <IdeaCard
+                key={idea.id}
+                idea={idea}
+                openPledge={openPledge?.ideaId === idea.id ? openPledge : null}
+                onTierClick={(amountCents) => startPledge(idea, amountCents)}
+                onClose={() => setOpenPledge(null)}
+                onSuccess={handleSuccess}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </Elements>
   )
 }

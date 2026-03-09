@@ -103,7 +103,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'How does the naming perk work?',
-        a: 'After funding is complete, we\'ll reach out to the #1 backer (if they chose the naming perk) and ask for their preferred app name. You can name it whatever you want — no restrictions. The name goes live when the app ships.',
+        a: 'The top backer can submit up to 3 name suggestions. We\'ll review each one and approve the ones that meet our standards (appropriate and non-trademarked). You then choose your favorite from the approved options. If all 3 are approved, you pick from all 3. If only 2 pass review, you pick from those 2. The chosen name goes live when the app ships.',
       },
       {
         q: 'What is the easter egg perk?',
