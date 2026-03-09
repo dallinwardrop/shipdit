@@ -47,6 +47,8 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
     : null
 
   const isLive = idea.status === 'live'
+  const isFunded = idea.status === 'funded'
+  const isBuilding = ['building', 'in_review'].includes(idea.status)
 
   return (
     <div className="win95-window" style={{ maxWidth: '100%' }}>
@@ -174,6 +176,10 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
             <span><span style={{ color: '#808080' }}>○</span> {idea.watcher_count} watcher{idea.watcher_count !== 1 ? 's' : ''}</span>
             {idea.status === 'built' ? (
               <span style={{ color: '#300060', fontWeight: 'bold' }}>🚀 SHIPD</span>
+            ) : (isFunded || isBuilding) && hours !== null && hours > 0 ? (
+              <span style={{ color: '#004000' }}>
+                {isBuilding ? `Building — ${formatTimeLeft(hours)}` : `Build starts in ${formatTimeLeft(hours)}`}
+              </span>
             ) : hours !== null && (
               <span style={{ color: isExpiringSoon ? 'darkred' : 'inherit' }}>
                 {hours > 0 ? `${formatTimeLeft(hours)} left` : 'EXPIRED'}
@@ -186,24 +192,33 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
         </div>
       </Link>
 
-      {/* Back This button — live ideas only */}
-      {isLive && (
-        <div className="px-3 pb-3">
-          <a
-            href={`/fund/${idea.slug}`}
-            className="win95-btn win95-btn-primary"
-            style={{
-              display: 'block',
-              width: '100%',
-              textAlign: 'center',
-              textDecoration: 'none',
-              padding: '6px',
-              fontFamily: 'VT323, monospace',
-              fontSize: '1rem',
-            }}
-          >
-            Back This →
-          </a>
+      {/* Quick-pledge buttons — live and funded ideas */}
+      {(isLive || isFunded) && (
+        <div className="px-3 pb-3 space-y-1">
+          {isFunded && (
+            <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#004000' }}>
+              Funded ✓ — keep backing it
+            </div>
+          )}
+          <div className="flex gap-2">
+            {[10, 25, 100].map((dollars) => (
+              <a
+                key={dollars}
+                href={`/fund/${idea.slug}?amount=${dollars}`}
+                className="win95-btn win95-btn-primary"
+                style={{
+                  flex: 1,
+                  textAlign: 'center',
+                  textDecoration: 'none',
+                  padding: '5px 0',
+                  fontFamily: 'VT323, monospace',
+                  fontSize: '1rem',
+                }}
+              >
+                ${dollars}
+              </a>
+            ))}
+          </div>
         </div>
       )}
     </div>

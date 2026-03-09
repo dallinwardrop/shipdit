@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
@@ -104,14 +104,27 @@ export function PledgeBox({
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const boxRef = useRef<HTMLDivElement>(null)
 
-  const [selectedCents, setSelectedCents] = useState<number | null>(null)
-  const [customDollars, setCustomDollars] = useState('')
+  // Pre-fill from ?amount query param (set by quick-pledge buttons on feed)
+  const amountParam = searchParams.get('amount')
+  const amountCents = amountParam ? Math.round(parseFloat(amountParam) * 100) : null
+  const tierMatch = amountCents ? TIERS.find((t) => t.amountCents === amountCents) : null
+
+  const [selectedCents, setSelectedCents] = useState<number | null>(tierMatch ? amountCents : null)
+  const [customDollars, setCustomDollars] = useState(amountCents && !tierMatch ? (amountParam ?? '') : '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [clientSecret, setClientSecret] = useState<string | null>(null)
   const [pledged, setPledged] = useState(searchParams.get('pledged') === '1')
   const [anonymous, setAnonymous] = useState(false)
+
+  // Scroll into view when arriving from a quick-pledge button
+  useEffect(() => {
+    if (amountParam && boxRef.current) {
+      boxRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [amountParam])
 
   const refCode = searchParams.get('ref') ?? undefined
 
@@ -184,7 +197,7 @@ export function PledgeBox({
   const isAlreadyFunded = status === 'funded' || status === 'building' || status === 'in_review' || status === 'built'
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" ref={boxRef}>
       {isAlreadyFunded ? (
         <div
           className="win95-raised p-2 text-xs text-center"
