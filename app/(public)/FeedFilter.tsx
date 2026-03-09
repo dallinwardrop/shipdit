@@ -329,12 +329,14 @@ function ShipditCard({
 function IdeaCard({
   idea,
   openPledge,
+  anyPledgeOpen,
   onTierClick,
   onClose,
   onSuccess,
 }: {
   idea: IdeaWithTopDonor
   openPledge: OpenPledge | null
+  anyPledgeOpen: boolean
   onTierClick: (amountCents: number) => void
   onClose: () => void
   onSuccess: () => void
@@ -627,6 +629,7 @@ function IdeaCard({
                     key={amountCents}
                     type="button"
                     title={perk}
+                    disabled={anyPledgeOpen}
                     onClick={() => onTierClick(amountCents)}
                     className="win95-btn win95-btn-primary"
                     style={{
@@ -635,7 +638,8 @@ function IdeaCard({
                       fontFamily: 'VT323, monospace',
                       fontSize: '0.95rem',
                       lineHeight: 1.2,
-                      cursor: 'pointer',
+                      cursor: anyPledgeOpen ? 'default' : 'pointer',
+                      ...(anyPledgeOpen ? { opacity: 0.4 } : {}),
                     }}
                   >
                     ${dollars.toLocaleString()}<br />
@@ -673,6 +677,7 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
     .filter((idea) => !query || idea.title.toLowerCase().includes(query))
 
   async function startPledge(idea: IdeaWithTopDonor, amountCents: number) {
+    if (openPledge !== null) return
     // Immediately open the card in loading state (collapses any other open card)
     setOpenSupport(null)
     setOpenPledge({ ideaId: idea.id, amountCents, phase: 'loading', clientSecret: null, apiError: null })
@@ -838,6 +843,7 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
                 key={idea.id}
                 idea={idea}
                 openPledge={openPledge?.ideaId === idea.id ? openPledge : null}
+                anyPledgeOpen={openPledge !== null}
                 onTierClick={(amountCents) => startPledge(idea, amountCents)}
                 onClose={() => setOpenPledge(null)}
                 onSuccess={handleSuccess}
