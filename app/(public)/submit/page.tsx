@@ -3,6 +3,99 @@
 import { useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import type { FeatureItem } from '@/lib/supabase/types'
+import { loadStripe } from '@stripe/stripe-js'
+import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+
+const cardElementOptions = {
+  style: {
+    base: {
+      fontFamily: 'Share Tech Mono, monospace',
+      fontSize: '14px',
+      color: '#000',
+      '::placeholder': { color: '#808080' },
+    },
+    invalid: { color: 'darkred' },
+  },
+}
+
+function CardConfirmStep({
+  clientSecret,
+  slug,
+  pledgeAmountCents,
+}: {
+  clientSecret: string
+  slug: string
+  pledgeAmountCents: number
+}) {
+  const stripe = useStripe()
+  const elements = useElements()
+  const router = useRouter()
+  const [confirming, setConfirming] = useState(false)
+  const [cardError, setCardError] = useState<string | null>(null)
+
+  const handleConfirm = async () => {
+    if (!stripe || !elements) return
+    setConfirming(true)
+    setCardError(null)
+
+    const cardElement = elements.getElement(CardElement)
+    if (!cardElement) { setConfirming(false); return }
+
+    const { error } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: cardElement },
+    })
+
+    if (error) {
+      setCardError(error.message ?? 'Payment authorization failed.')
+      setConfirming(false)
+    } else {
+      router.push(`/share/${slug}`)
+    }
+  }
+
+  return (
+    <div className="win95-window">
+      <div className="win95-title-bar" style={{ background: '#004000' }}>
+        <span className="font-vt323 text-xl">Step 2 of 2 — Authorize Your Pledge</span>
+      </div>
+      <div className="p-4 space-y-4">
+        <p className="text-sm" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+          Your idea has been saved. ✓ Now authorize your{' '}
+          <strong>${(pledgeAmountCents / 100).toLocaleString()}</strong> pledge.
+          Your card will be <strong>held but not charged</strong> until the idea hits its
+          minimum funding goal within 72 hours of going live.
+        </p>
+        <div className="win95-sunken p-3" style={{ background: '#fff' }}>
+          <CardElement options={cardElementOptions} />
+        </div>
+        {cardError && (
+          <div className="win95-sunken p-2 text-sm" style={{ color: 'darkred', borderColor: 'darkred' }}>
+            ⚠ {cardError}
+          </div>
+        )}
+        <button
+          type="button"
+          onClick={handleConfirm}
+          disabled={confirming || !stripe}
+          className="win95-btn win95-btn-primary w-full"
+          style={{
+            padding: '10px',
+            fontSize: '1rem',
+            fontFamily: 'VT323, monospace',
+            ...(confirming ? { borderColor: '#808080 #fff #fff #808080', cursor: 'default', opacity: 0.85 } : {}),
+          }}
+        >
+          {confirming ? '⌛ Authorizing...' : 'AUTHORIZE PLEDGE →'}
+        </button>
+        <p className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+          You will only be charged if your idea reaches its minimum funding goal.
+        </p>
+      </div>
+    </div>
+  )
+}
 
 type Priority = 'MUST HAVE' | 'SHOULD HAVE' | 'NICE TO HAVE'
 
@@ -63,6 +156,8 @@ export default function SubmitPage() {
   const [form, setForm] = useState<FormState>(DEFAULT_FORM)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [clientSecret, setClientSecret] = useState<string | null>(null)
+  const [ideaSlug, setIdeaSlug] = useState<string | null>(null)
 
   const updateField = useCallback(
     <K extends keyof FormState>(key: K, value: FormState[K]) => {
@@ -135,7 +230,8 @@ export default function SubmitPage() {
         return
       }
 
-      router.push(`/share/${json.slug}`)
+      setClientSecret(json.payment_intent_client_secret)
+      setIdeaSlug(json.slug)
     } catch {
       setError('Network error. Please try again.')
     } finally {
@@ -143,8 +239,19 @@ export default function SubmitPage() {
     }
   }
 
+  const pledgeAmountCents = parseInt(form.submitter_pledge_amount, 10) * 100
+
   return (
     <div className="max-w-2xl mx-auto space-y-4">
+      {clientSecret && ideaSlug ? (
+        <Elements stripe={stripePromise}>
+          <CardConfirmStep
+            clientSecret={clientSecret}
+            slug={ideaSlug}
+            pledgeAmountCents={pledgeAmountCents}
+          />
+        </Elements>
+      ) : (
       <div className="win95-window">
         <div className="win95-title-bar">
           <span className="font-vt323 text-xl">Submit App Idea — New Window</span>
@@ -388,6 +495,7 @@ export default function SubmitPage() {
           </form>
         </div>
       </div>
+      )}
 
       {/* 72-hour urgency callout */}
       <div className="win95-window">
