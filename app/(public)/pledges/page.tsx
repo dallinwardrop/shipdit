@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { formatDollars, progressPercent } from '@/lib/utils'
+import { CancelPledgeButton } from './CancelPledgeButton'
 
 type PledgeRow = {
   id: string
@@ -25,11 +26,13 @@ type IdeaRow = {
 }
 
 const STATUS_BADGE: Record<string, { label: string; bg: string; color: string }> = {
-  held:      { label: 'AUTHORIZED', bg: '#fff8c0', color: '#886600' },
-  captured:  { label: 'CHARGED',    bg: '#c0ffc0', color: '#004000' },
-  refunded:  { label: 'REFUNDED',   bg: '#e8e8e8', color: '#404040' },
-  failed:    { label: 'FAILED',     bg: '#ffc0c0', color: '#800000' },
-  pending:   { label: 'PENDING',    bg: '#c0d0ff', color: '#000080' },
+  held:        { label: 'AUTHORIZED', bg: '#fff8c0', color: '#886600' },
+  authorized:  { label: 'AUTHORIZED', bg: '#fff8c0', color: '#886600' },
+  captured:    { label: 'CHARGED',    bg: '#c0ffc0', color: '#004000' },
+  refunded:    { label: 'REFUNDED',   bg: '#e8e8e8', color: '#404040' },
+  cancelled:   { label: 'CANCELLED',  bg: '#e8e8e8', color: '#808080' },
+  failed:      { label: 'FAILED',     bg: '#ffc0c0', color: '#800000' },
+  pending:     { label: 'PENDING',    bg: '#c0d0ff', color: '#000080' },
 }
 
 function pledgeLabel(type: string, amount: number): string {
@@ -53,6 +56,7 @@ export default async function PledgesPage() {
     .from('pledges')
     .select('id, amount, type, status, created_at, app_idea_id')
     .eq('user_id', user.id)
+    .not('status', 'eq', 'cancelled')
     .order('created_at', { ascending: false })
 
   const pledges = (pledgeRows ?? []) as PledgeRow[]
@@ -171,11 +175,16 @@ export default async function PledgesPage() {
                     </div>
                   )}
 
-                  {/* Date */}
-                  <div style={{ fontSize: 11, opacity: 0.5 }}>
-                    Pledged {new Date(pledge.created_at).toLocaleDateString('en-US', {
-                      month: 'short', day: 'numeric', year: 'numeric',
-                    })}
+                  {/* Date + cancel */}
+                  <div className="flex justify-between items-center">
+                    <div style={{ fontSize: 11, opacity: 0.5 }}>
+                      Pledged {new Date(pledge.created_at).toLocaleDateString('en-US', {
+                        month: 'short', day: 'numeric', year: 'numeric',
+                      })}
+                    </div>
+                    {(pledge.status === 'held' || pledge.status === 'authorized') && idea && (
+                      <CancelPledgeButton pledgeId={pledge.id} appTitle={idea.title} />
+                    )}
                   </div>
                 </div>
               )

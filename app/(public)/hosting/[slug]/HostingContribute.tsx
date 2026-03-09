@@ -143,7 +143,7 @@ export function HostingContribute({
       >
         <div className="font-vt323 text-2xl" style={{ color: '#004000' }}>✓ Thank you!</div>
         <p style={{ fontFamily: 'Share Tech Mono, monospace', fontSize: 12 }}>
-          Your contribution helps keep <strong>{appName}</strong> free for everyone.
+          Your contribution helps keep <strong>{appName}</strong> free for the community.
         </p>
       </div>
     )
@@ -152,7 +152,7 @@ export function HostingContribute({
   return (
     <div className="space-y-3">
       <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-        Every dollar keeps this app <strong>free for everyone</strong>. Your contribution goes directly to hosting costs.
+        Every dollar keeps this app <strong>free for the community</strong>. Your contribution goes directly to hosting costs.
       </p>
 
       {!clientSecret && (

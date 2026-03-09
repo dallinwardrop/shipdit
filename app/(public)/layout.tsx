@@ -9,7 +9,7 @@ export const metadata: Metadata = {
     default: 'Shipdit — Community-Funded Apps',
     template: '%s — Shipdit',
   },
-  description: 'Pledge to fund app ideas. Hit the goal, I build it in 72 hours, free for everyone forever.',
+  description: 'Pledge to fund app ideas. Hit the goal, I build it in 72 hours. No subscriptions. No ads. Just backers.',
   metadataBase: new URL(APP_URL),
   openGraph: {
     siteName: 'Shipdit',
@@ -57,7 +57,7 @@ export default function PublicLayout({ children }: { children: React.ReactNode }
         <div className="px-4 py-2 flex flex-col items-center gap-1 sm:flex-row sm:items-center sm:gap-x-4 sm:gap-y-1">
           <span className="font-vt323 text-lg" style={{ color: '#000080' }}>SHIPDIT</span>
           <span className="text-xs text-center sm:text-left" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
-            Community-funded apps, free for everyone.
+            No subscriptions. No ads. Just backers.
           </span>
           <div className="flex gap-3 sm:ml-auto">
             <Link href="/terms" className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040', textDecoration: 'none' }}>

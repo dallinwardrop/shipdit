@@ -24,6 +24,7 @@ export type IdeaRow = {
   platform_preference: string | null
   submitter_pledge_amount: number | null
   admin_notes: string | null
+  hosting_monthly_goal: number | null
 }
 
 export type PledgeRow = {
@@ -320,6 +321,33 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
                             <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                               <span>{formatDollars(idea.amount_raised)} / {formatDollars(idea.build_price)}</span>
                               <span>{pct}%</span>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* BUILT: Hosting goal inline edit */}
+                        {status === 'built' && (
+                          <div className="space-y-1">
+                            <div style={{ opacity: 0.6 }}>Hosting goal ($/mo):</div>
+                            <div style={{ display: 'flex', gap: 4 }}>
+                              <input
+                                type="number"
+                                className="win95-input"
+                                style={{ fontSize: 11, flex: 1 }}
+                                placeholder="e.g. 50"
+                                value={hostingGoalEdit[idea.id] ?? String(Math.round((idea.hosting_monthly_goal ?? 0) / 100))}
+                                onChange={(e) => setHostingGoalEdit((p) => ({ ...p, [idea.id]: e.target.value }))}
+                              />
+                              <button
+                                onClick={() => {
+                                  const dollars = parseFloat(hostingGoalEdit[idea.id] ?? '0')
+                                  act('/api/admin/hosting', { idea_id: idea.id, hosting_monthly_goal: Math.round(dollars * 100) }, `${idea.id}::h-goal`)
+                                }}
+                                disabled={isLoading}
+                                style={styledBtn({ ...btnNavy, padding: '1px 6px' }, `${idea.id}::h-goal`)}
+                              >
+                                {btnTxt('Save', `${idea.id}::h-goal`)}
+                              </button>
                             </div>
                           </div>
                         )}

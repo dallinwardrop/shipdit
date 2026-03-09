@@ -10,7 +10,7 @@ export default async function AdminPage() {
   const [ideasRes, pledgesRes, usersRes, shippedRes] = await Promise.all([
     admin
       .from('app_ideas')
-      .select('id, title, slug, status, amount_raised, build_price, backer_count, created_at, submitter_id, goal_description, features, target_user, similar_apps, platform_preference, submitter_pledge_amount, admin_notes')
+      .select('id, title, slug, status, amount_raised, build_price, backer_count, created_at, submitter_id, goal_description, features, target_user, similar_apps, platform_preference, submitter_pledge_amount, admin_notes, hosting_monthly_goal')
       .in('status', ['under_review', 'awaiting_price', 'priced', 'live', 'funded', 'building', 'in_review', 'built'])
       .order('created_at', { ascending: false }),
     admin

@@ -256,7 +256,7 @@ export function PledgeBox({
           {isAlreadyFunded ? (
             <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
               This app is already funded and being built. Extra pledges go directly toward
-              <strong> hosting costs</strong> — keeping the app free for everyone, forever.
+              <strong> hosting costs</strong> — keeping the app running for the community.
             </p>
           ) : (
             <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>

@@ -53,8 +53,8 @@ export default async function SharePage({
 
   const shareCopy = {
     text: `I just submitted an app idea and need your help funding it. $10 gets you notified when it launches. Check it out: ${shareUrl}`,
-    linkedin: `I just submitted an idea to Shipdit — a platform where the community funds apps and they get built free for everyone. If we hit the goal, this gets built. Would love your support: ${shareUrl}`,
-    twitter: `just submitted an app idea to @shipdit — if we hit the funding goal it gets built free for everyone. back it here: ${shareUrl}`,
+    linkedin: `I just submitted an idea to Shipdit — a platform where the community funds apps and they get built free to use. If we hit the goal, this gets built. Would love your support: ${shareUrl}`,
+    twitter: `just submitted an app idea to @shipdit — if we hit the funding goal it gets built free to use, kept alive by backers. back it here: ${shareUrl}`,
   }
 
   return (

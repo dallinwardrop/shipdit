@@ -20,7 +20,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'What happens after an app is built?',
-        a: 'It gets published as a live app on Shipdit, free for everyone to use — including people who never pledged. Backers keep their app running by optionally contributing to hosting costs.',
+        a: 'It gets published as a live app on Shipdit, free to use for the whole community — including people who never pledged. Backers help keep it running by optionally contributing to hosting costs.',
       },
     ],
   },
@@ -81,8 +81,8 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
         a: 'I do — Dallin Wardrop, a product manager and developer with 10+ years building software products. Shipdit is my commitment to build what the community actually wants.',
       },
       {
-        q: 'Will the app really be free for everyone?',
-        a: 'Yes. Once funded and built, the app is free for any user — whether they pledged or not. Backers help keep it running by optionally funding hosting.',
+        q: 'Is the app really free to use after it\'s built?',
+        a: 'Yes. Once funded and built, the app is free for any user — whether they pledged or not. It stays free as long as the community keeps covering hosting costs.',
       },
       {
         q: 'Can I pledge to the same idea multiple times?',

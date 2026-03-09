@@ -21,7 +21,7 @@ export async function generateMetadata(
 
   if (!idea) return {}
 
-  const description = `Help keep ${idea.title} free for everyone by contributing to monthly hosting costs.`
+  const description = `Help keep ${idea.title} free for the community by contributing to monthly hosting costs.`
   return {
     title: `${idea.title} — Support Hosting on Shipdit`,
     description,
@@ -136,7 +136,7 @@ export default async function HostingPage({ params }: { params: Promise<{ slug: 
                   <span style={{ color: '#804000' }}>⏰ {daysLeft} day{daysLeft !== 1 ? 's' : ''} left</span>
                 </div>
                 <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-                  Community contributions cover server costs and keep this app free for everyone.
+                  Help keep this app alive — {formatDollars(goal)}/month covers hosting and maintenance. Contribute any amount.
                 </div>
               </>
             ) : (

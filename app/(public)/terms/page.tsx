@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 const SECTIONS = [
   {
     title: '1. What Is Shipdit',
-    body: `Shipdit is a community-funded app-building platform. Users submit app ideas, pledge money toward a build goal, and when the goal is reached, Shipdit builds the app and releases it free for everyone. Shipdit is operated as a sole proprietorship. By using the site you agree to these terms.`,
+    body: `Shipdit is a community-funded app-building platform. Users submit app ideas, pledge money toward a build goal, and when the goal is reached, Shipdit builds the app and makes it free for the community to use. Shipdit is operated as a sole proprietorship. By using the site you agree to these terms.`,
   },
   {
     title: '2. Pledge Hold, Capture, and Refund Policy',
@@ -45,7 +45,7 @@ Shipdit may receive and store limited payment metadata from Stripe such as payme
   },
   {
     title: '7. Intellectual Property',
-    body: `Apps built through Shipdit are released free for public use. The underlying code and intellectual property of built apps remains owned by Shipdit unless explicitly stated otherwise. Submitting an idea does not grant you ownership of the resulting app or its codebase.`,
+    body: `Apps built through Shipdit are made free for public use. The underlying code and intellectual property of built apps remains owned by Shipdit unless explicitly stated otherwise. Submitting an idea does not grant you ownership of the resulting app or its codebase.`,
   },
   {
     title: '8. Limitation of Liability',

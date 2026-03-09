@@ -145,15 +145,23 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
           {idea.status === 'built' && idea.hosting_monthly_goal > 0 && (() => {
             const hPct = progressPercent(idea.hosting_collected, idea.hosting_monthly_goal)
             const hColor = hPct >= 50 ? '#006600' : hPct >= 25 ? '#886600' : '#cc0000'
+            const dayOfMonth = new Date().getDate()
+            const isAtRisk = idea.hosting_status === 'warning' || idea.hosting_status === 'offline' ||
+              (dayOfMonth >= 15 && hPct < 50)
             return (
               <div className="space-y-1">
+                {isAtRisk && (
+                  <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: 'darkred', fontWeight: 'bold' }}>
+                    ⚠️ Hosting at risk this month
+                  </div>
+                )}
                 <a
                   href={`/hosting/${idea.slug}`}
                   onClick={(e) => e.stopPropagation()}
                   style={{ textDecoration: 'none', display: 'block' }}
                 >
                   <div className="text-xs flex justify-between" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-                    <span>Hosting</span>
+                    <span>{formatDollars(idea.hosting_collected)} of {formatDollars(idea.hosting_monthly_goal)}/mo</span>
                     <span style={{ color: hColor, fontWeight: 'bold' }}>{hPct}%</span>
                   </div>
                   <div className="win95-progress-track" style={{ height: 6 }}>

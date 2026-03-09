@@ -304,11 +304,13 @@ export default async function FundIdeaPage({
           {isBuilt && (
             <div className="win95-window">
               <div className="win95-title-bar">
-                <span className="font-vt323 text-lg">Keep this app free</span>
+                <span className="font-vt323 text-lg">Keep this app alive</span>
               </div>
               <div className="p-4 space-y-3">
                 <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-                  Community contributions cover server costs and keep this app free for everyone.
+                  {hGoal > 0
+                    ? `Help keep this app alive — ${formatDollars(hGoal)}/month covers hosting and maintenance. Contribute any amount.`
+                    : 'Help keep this app alive by contributing to hosting and maintenance costs.'}
                 </p>
 
                 {hGoal > 0 ? (
@@ -317,7 +319,7 @@ export default async function FundIdeaPage({
                       <div className="win95-progress-fill" style={{ width: `${hPct}%`, background: hColor }} />
                     </div>
                     <div className="flex justify-between text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                      <span>{formatDollars(hCollected)} of {formatDollars(hGoal)} this month</span>
+                      <span>{formatDollars(hCollected)} of {formatDollars(hGoal)}/month raised</span>
                       <span style={{ fontWeight: 'bold', color: hColor }}>{hPct}%</span>
                     </div>
                   </div>

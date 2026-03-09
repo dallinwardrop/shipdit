@@ -23,7 +23,7 @@ export default async function DirectoryPage() {
             SHIPD APPS
           </h1>
           <p className="text-sm mt-1">
-            Community-funded apps that have shipd and are free for everyone.
+            Community-funded apps that have shipd — free to use, kept alive by backers.
           </p>
         </div>
       </div>
