@@ -36,23 +36,14 @@ function truncate(str: string | null | undefined, max: number) {
 async function getTickerItems(): Promise<TickerItem[]> {
   const supabase = createAdminClient()
 
-  const [{ data: recentIdeas }, { data: recentPledges }] = await Promise.all([
-    supabase
-      .from('app_ideas')
-      .select('id, title, status, slug, created_at')
-      .in('status', ['submitted', 'under_review', 'live', 'priced', 'funded', 'building', 'in_review', 'built'])
-      .order('created_at', { ascending: false })
-      .limit(8),
-    supabase
-      .from('pledges')
-      .select('id, created_at, app_ideas(title, slug)')
-      .eq('type', 'pledge')
-      .in('status', ['held', 'captured'])
-      .order('created_at', { ascending: false })
-      .limit(5),
-  ])
+  const { data: recentIdeas } = await supabase
+    .from('app_ideas')
+    .select('id, title, status, slug, created_at')
+    .in('status', ['submitted', 'under_review', 'live', 'priced', 'funded', 'building', 'in_review', 'built'])
+    .order('created_at', { ascending: false })
+    .limit(10)
 
-  const ideaItems: TickerItem[] = (recentIdeas ?? []).map((idea) => {
+  const combined: TickerItem[] = (recentIdeas ?? []).map((idea) => {
     const t = `"${truncate(idea.title, 32)}"`
     switch (idea.status) {
       case 'submitted':
@@ -72,24 +63,6 @@ async function getTickerItems(): Promise<TickerItem[]> {
         return { text: `💡 ${t}`, href: `/fund/${idea.slug}` }
     }
   })
-
-  const pledgeItems: TickerItem[] = (recentPledges ?? [])
-    .filter((p) => p.app_ideas)
-    .map((p) => {
-      const idea = p.app_ideas as { title: string; slug: string }
-      return {
-        text: `👤 Someone just backed "${truncate(idea.title, 32)}"`,
-        href: `/fund/${idea.slug}`,
-      }
-    })
-
-  // Interleave pledge events with idea events
-  const combined: TickerItem[] = []
-  const maxLen = Math.max(ideaItems.length, pledgeItems.length)
-  for (let i = 0; i < maxLen; i++) {
-    if (i < pledgeItems.length) combined.push(pledgeItems[i])
-    if (i < ideaItems.length) combined.push(ideaItems[i])
-  }
 
   // Interleave support item after every activity item
   const SUPPORT_ITEM: TickerItem = { text: '⭐ Support Shipdit — keep the platform alive', href: '/support' }
