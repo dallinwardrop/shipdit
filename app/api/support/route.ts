@@ -43,32 +43,22 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ error: 'Could not create payment customer.' }, { status: 500 })
       }
 
-      // Create a per-amount recurring price and subscription
-      const price = await stripe.prices.create({
-        currency: 'usd',
-        unit_amount: amount,
-        recurring: { interval: 'month' },
-        product_data: { name: 'Shipdit Monthly Support' },
-      })
-
       const subscription = await stripe.subscriptions.create({
         customer: customerId,
-        items: [{ price: price.id }],
+        items: [{ price_data: { currency: 'usd', product_data: { name: 'Shipdit Monthly Support' }, recurring: { interval: 'month' }, unit_amount: amount } }],
         payment_behavior: 'default_incomplete',
         payment_settings: { save_default_payment_method: 'on_subscription' },
+        expand: ['latest_invoice.payment_intent'],
         metadata: { user_id: user.id, type: 'support', mode: 'monthly' },
       })
 
-      const invoice = await stripe.invoices.retrieve(
-        subscription.latest_invoice as string,
-        { expand: ['payment_intent'] }
-      )
+      const invoice = subscription.latest_invoice as Stripe.Invoice
       const pi = invoice.payment_intent as Stripe.PaymentIntent
 
       return NextResponse.json({
         success: true,
-        client_secret: pi.client_secret,
-        subscription_id: subscription.id,
+        subscriptionId: subscription.id,
+        clientSecret: pi.client_secret,
       })
     }
 
