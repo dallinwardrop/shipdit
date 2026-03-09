@@ -39,7 +39,9 @@ const FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = 
 function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const hours = hoursUntil(idea.funding_deadline)
-  const isExpiringSoon = hours !== null && hours <= 24 && hours >= 0
+  const isCritical = hours !== null && hours >= 0 && hours < 6
+  const isUrgent   = hours !== null && hours >= 0 && hours < 24
+  const isWarning  = hours !== null && hours >= 0 && hours >= 24 && hours <= 48
   const badge = STATUS_BADGE[idea.status]
   const isPreLive = ['submitted', 'under_review', 'awaiting_price'].includes(idea.status)
   const appLabel = idea.app_number
@@ -51,7 +53,7 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
   const isBuilding = ['building', 'in_review'].includes(idea.status)
 
   return (
-    <div className="win95-window" style={{ maxWidth: '100%' }}>
+    <div className="win95-window" style={{ maxWidth: '100%', ...(isLive && isCritical ? { outline: '2px solid #cc0000' } : {}) }}>
       <Link href={`/fund/${idea.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }} className="cursor-pointer hover:brightness-95">
 
         {/* Title bar */}
@@ -181,8 +183,13 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
                 {isBuilding ? `Building — ${formatTimeLeft(hours)}` : `Build starts in ${formatTimeLeft(hours)}`}
               </span>
             ) : hours !== null && (
-              <span style={{ color: isExpiringSoon ? 'darkred' : 'inherit' }}>
-                {hours > 0 ? `${formatTimeLeft(hours)} left` : 'EXPIRED'}
+              <span style={{
+                color: (isCritical || isUrgent) ? 'darkred' : isWarning ? '#886600' : 'inherit',
+                fontWeight: (isCritical || isUrgent) ? 'bold' : 'inherit',
+              }}>
+                {hours > 0
+                  ? `${isCritical || isUrgent || isWarning ? '⚠️ ' : ''}${formatTimeLeft(hours)} left`
+                  : 'EXPIRED'}
               </span>
             )}
             {idea.top_donor_name && (
@@ -200,22 +207,30 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
               Funded ✓ — keep backing it
             </div>
           )}
-          <div className="flex gap-2">
-            {[10, 25, 100].map((dollars) => (
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 4 }}>
+            {([
+              { amount: 10,   label: 'Watcher',   perk: 'Get notified when it launches' },
+              { amount: 100,  label: 'Supporter',  perk: 'Supporter credit in the app' },
+              { amount: 500,  label: 'Backer',     perk: 'Early demo access' },
+              { amount: 1000, label: 'Patron',     perk: 'Your name in the credits' },
+            ] as const).map(({ amount, label, perk }) => (
               <a
-                key={dollars}
-                href={`/fund/${idea.slug}?amount=${dollars}`}
+                key={amount}
+                href={`/fund/${idea.slug}?amount=${amount}`}
                 className="win95-btn win95-btn-primary"
+                title={perk}
                 style={{
-                  flex: 1,
                   textAlign: 'center',
                   textDecoration: 'none',
-                  padding: '5px 0',
+                  padding: '4px 2px',
                   fontFamily: 'VT323, monospace',
-                  fontSize: '1rem',
+                  fontSize: '0.95rem',
+                  lineHeight: 1.2,
+                  display: 'block',
                 }}
               >
-                ${dollars}
+                ${amount.toLocaleString()}<br />
+                <span style={{ fontSize: '0.7rem', opacity: 0.85 }}>{label}</span>
               </a>
             ))}
           </div>
