@@ -56,11 +56,13 @@ export async function POST(request: NextRequest) {
         items: [{ price: price.id }],
         payment_behavior: 'default_incomplete',
         payment_settings: { save_default_payment_method: 'on_subscription' },
-        expand: ['latest_invoice.payment_intent'],
         metadata: { user_id: user.id, type: 'support', mode: 'monthly' },
       })
 
-      const invoice = subscription.latest_invoice as Stripe.Invoice
+      const invoice = await stripe.invoices.retrieve(
+        subscription.latest_invoice as string,
+        { expand: ['payment_intent'] }
+      )
       const pi = invoice.payment_intent as Stripe.PaymentIntent
 
       return NextResponse.json({
