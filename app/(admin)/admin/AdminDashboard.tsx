@@ -62,6 +62,10 @@ const PIPELINE_COLS = [
   { status: 'awaiting_price', label: 'Awaiting Price' },
   { status: 'priced',         label: 'Priced' },
   { status: 'live',           label: 'Live' },
+  { status: 'funded',         label: 'Funded' },
+  { status: 'building',       label: 'Building' },
+  { status: 'in_review',      label: 'In Review' },
+  { status: 'built',          label: 'Built' },
 ]
 
 // ── Shared button styles ──────────────────────────────────────────────────────
@@ -253,7 +257,7 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
       <div className="win95-title-bar">
         <span className="font-vt323 text-lg">Pipeline</span>
         <span className="text-xs opacity-70 ml-2">
-          {ideas.filter(i => ['under_review','awaiting_price','priced','live'].includes(i.status)).length} ideas
+          {ideas.length} ideas
         </span>
       </div>
       <div style={{ overflowX: 'auto', padding: 8 }}>
@@ -307,8 +311,8 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
                           )}
                         </div>
 
-                        {/* Progress bar (priced/live) */}
-                        {(status === 'priced' || status === 'live') && idea.build_price && (
+                        {/* Progress bar (priced and beyond) */}
+                        {['priced', 'live', 'funded', 'building', 'in_review', 'built'].includes(status) && idea.build_price && (
                           <div className="space-y-1">
                             <div className="win95-progress-track" style={{ height: 12 }}>
                               <div className="win95-progress-fill" style={{ width: `${pct}%` }} />
@@ -458,6 +462,39 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
                           </button>
                         )}
 
+                        {/* FUNDED: Start Building */}
+                        {status === 'funded' && (
+                          <button
+                            onClick={() => act('/api/approve', { app_idea_id: idea.id, action: 'advance' }, `${idea.id}::start-building`)}
+                            disabled={isLoading}
+                            style={styledBtn({ ...btnNavy, width: '100%', padding: '4px' }, `${idea.id}::start-building`)}
+                          >
+                            {btnTxt('🔨 START BUILDING', `${idea.id}::start-building`)}
+                          </button>
+                        )}
+
+                        {/* BUILDING: Mark In Review */}
+                        {status === 'building' && (
+                          <button
+                            onClick={() => act('/api/approve', { app_idea_id: idea.id, action: 'advance' }, `${idea.id}::in-review`)}
+                            disabled={isLoading}
+                            style={styledBtn({ ...btnNavy, width: '100%', padding: '4px' }, `${idea.id}::in-review`)}
+                          >
+                            {btnTxt('📋 MARK IN REVIEW', `${idea.id}::in-review`)}
+                          </button>
+                        )}
+
+                        {/* IN REVIEW: Mark Built */}
+                        {status === 'in_review' && (
+                          <button
+                            onClick={() => act('/api/approve', { app_idea_id: idea.id, action: 'advance' }, `${idea.id}::mark-built`)}
+                            disabled={isLoading}
+                            style={styledBtn({ ...btnNavy, width: '100%', padding: '4px', background: '#300060', borderColor: '#200040 #8040ff #8040ff #200040' }, `${idea.id}::mark-built`)}
+                          >
+                            {btnTxt('🚀 MARK BUILT', `${idea.id}::mark-built`)}
+                          </button>
+                        )}
+
                         {/* PRICED: Go Live */}
                         {status === 'priced' && (
                           <button
@@ -509,12 +546,14 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
 
   // ── Ledger panel ──────────────────────────────────────────────────────────
 
-  // Show capture section for live ideas that have hit their goal, plus any already-funded ideas
-  const fundedIdeas = ideas.filter(
-    (i) =>
+  // Show capture section only for ideas that still have held pledges remaining
+  const fundedIdeas = ideas.filter((i) => {
+    const hasHeldPledges = pledges.some((p) => p.app_idea_id === i.id && p.status === 'held')
+    return hasHeldPledges && (
       (i.status === 'live' && i.build_price != null && i.amount_raised >= i.build_price) ||
       i.status === 'funded'
-  )
+    )
+  })
   const filteredPledges =
     pledgeFilter === 'all' ? pledges : pledges.filter((p) => p.status === pledgeFilter)
 
