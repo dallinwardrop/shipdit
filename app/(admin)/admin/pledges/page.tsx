@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ReleasePledgeButton } from './ReleasePledgeButton'
+import { CapturePledgeButton } from './CapturePledgeButton'
 
 export const dynamic = 'force-dynamic'
 import { formatDollars } from '@/lib/utils'
@@ -80,7 +81,10 @@ export default async function PledgesPage() {
                     <td className="p-2">
                       {new Date(pledge.created_at).toLocaleDateString('en-US')}
                     </td>
-                    <td className="p-2">
+                    <td className="p-2" style={{ display: 'flex', gap: 4 }}>
+                      {pledge.status === 'authorized' && idea && (
+                        <CapturePledgeButton pledgeId={pledge.id} appTitle={idea.title} />
+                      )}
                       {pledge.status === 'held' && idea && (
                         <ReleasePledgeButton pledgeId={pledge.id} appTitle={idea.title} />
                       )}
