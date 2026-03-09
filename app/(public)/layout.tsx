@@ -39,9 +39,9 @@ async function getTickerItems(): Promise<TickerItem[]> {
   const [{ data: recentIdeas }, { data: recentPledges }] = await Promise.all([
     supabase
       .from('app_ideas')
-      .select('id, title, status, slug, updated_at')
+      .select('id, title, status, slug, created_at')
       .in('status', ['submitted', 'under_review', 'live', 'priced', 'funded', 'building', 'in_review', 'built'])
-      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false })
       .limit(8),
     supabase
       .from('pledges')
