@@ -56,6 +56,14 @@ export type HostingRow = {
   hosting_status: string
 }
 
+export type SupporterRow = {
+  id: string
+  email: string
+  amount: number
+  created_at: string
+  stripe_payment_intent_id: string
+}
+
 // ── Pipeline columns ──────────────────────────────────────────────────────────
 
 const PIPELINE_COLS = [
@@ -95,14 +103,16 @@ export function AdminDashboard({
   pledges,
   users,
   shippedIdeas,
+  supporters,
 }: {
   ideas: IdeaRow[]
   pledges: PledgeRow[]
   users: UserRow[]
   shippedIdeas: HostingRow[]
+  supporters: SupporterRow[]
 }) {
   const router = useRouter()
-  const [panel, setPanel] = useState<'pipeline' | 'ledger' | 'users' | 'hosting'>('pipeline')
+  const [panel, setPanel] = useState<'pipeline' | 'ledger' | 'users' | 'hosting' | 'supporters'>('pipeline')
 
   // Per-idea action state
   const [rejectOpen, setRejectOpen] = useState<Record<string, boolean>>({})
@@ -222,10 +232,11 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
       <div className="p-1 space-y-1">
         {(
           [
-            ['pipeline', '📋 Pipeline'],
-            ['ledger',   '💳 Pledge Ledger'],
-            ['users',    '👤 Users'],
-            ['hosting',  '🖥 Hosting'],
+            ['pipeline',   '📋 Pipeline'],
+            ['ledger',     '💳 Pledge Ledger'],
+            ['users',      '👤 Users'],
+            ['hosting',    '🖥 Hosting'],
+            ['supporters', '⭐ Supporters'],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -854,16 +865,58 @@ Start with a fully working MVP that covers the core use case. Do not add unneces
     </div>
   )
 
+  // ── Supporters panel ──────────────────────────────────────────────────────
+
+  const supportersPanel = (
+    <div className="win95-window" style={{ flex: 1, minWidth: 0 }}>
+      <div className="win95-title-bar">
+        <span className="font-vt323 text-base">⭐ Shipdit Supporters ({supporters.length})</span>
+      </div>
+      <div style={{ overflowX: 'auto' }}>
+        {supporters.length === 0 ? (
+          <p className="p-4 text-xs text-center" style={{ opacity: 0.4, fontFamily: 'Share Tech Mono, monospace' }}>
+            No supporters yet.
+          </p>
+        ) : (
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontFamily: 'Share Tech Mono, monospace', fontSize: 11 }}>
+            <thead>
+              <tr style={{ background: '#5a3000', color: '#ffd080' }}>
+                {['Email', 'Amount', 'Date', 'PaymentIntent ID'].map((h) => (
+                  <th key={h} style={{ padding: '4px 8px', textAlign: 'left', whiteSpace: 'nowrap' }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {supporters.map((s, i) => (
+                <tr key={s.id} style={{ background: i % 2 === 0 ? '#e8e8e8' : '#f4f4f4' }}>
+                  <td style={{ padding: '3px 8px' }}>{s.email}</td>
+                  <td style={{ padding: '3px 8px', textAlign: 'right' }}>{formatDollars(s.amount)}</td>
+                  <td style={{ padding: '3px 8px', whiteSpace: 'nowrap' }}>
+                    {new Date(s.created_at).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: '3px 8px', opacity: 0.6, fontSize: 10 }}>
+                    {s.stripe_payment_intent_id}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+
   // ── Layout ────────────────────────────────────────────────────────────────
 
   return (
     <div style={{ minHeight: 'calc(100vh - 52px)', background: '#0a0a1a', padding: 12 }}>
       <div className="flex flex-col md:flex-row gap-3 md:items-start">
         {sidebar}
-        {panel === 'pipeline' && pipelinePanel}
-        {panel === 'ledger'   && ledgerPanel}
-        {panel === 'users'    && usersPanel}
-        {panel === 'hosting'  && hostingPanel}
+        {panel === 'pipeline'   && pipelinePanel}
+        {panel === 'ledger'     && ledgerPanel}
+        {panel === 'users'      && usersPanel}
+        {panel === 'hosting'    && hostingPanel}
+        {panel === 'supporters' && supportersPanel}
       </div>
 
       {/* ── Detail Modal ──────────────────────────────────────────────────── */}

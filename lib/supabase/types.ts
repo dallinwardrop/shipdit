@@ -409,6 +409,28 @@ export type Database = {
         }
         Relationships: []
       }
+      shipdit_supporters: {
+        Row: {
+          id: string
+          email: string
+          amount: number
+          created_at: string
+          stripe_payment_intent_id: string
+        }
+        Insert: {
+          id?: string
+          email: string
+          amount: number
+          created_at?: string
+          stripe_payment_intent_id: string
+        }
+        Update: {
+          email?: string
+          amount?: number
+          stripe_payment_intent_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

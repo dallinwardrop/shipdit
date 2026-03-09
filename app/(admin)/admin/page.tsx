@@ -2,12 +2,12 @@ export const dynamic = 'force-dynamic'
 
 import { createAdminClient } from '@/lib/supabase/admin'
 import { AdminDashboard } from './AdminDashboard'
-import type { IdeaRow, PledgeRow, UserRow, HostingRow } from './AdminDashboard'
+import type { IdeaRow, PledgeRow, UserRow, HostingRow, SupporterRow } from './AdminDashboard'
 
 export default async function AdminPage() {
   const admin = createAdminClient()
 
-  const [ideasRes, pledgesRes, usersRes, shippedRes] = await Promise.all([
+  const [ideasRes, pledgesRes, usersRes, shippedRes, supportersRes] = await Promise.all([
     admin
       .from('app_ideas')
       .select('id, title, slug, status, amount_raised, build_price, backer_count, created_at, submitter_id, goal_description, features, target_user, similar_apps, platform_preference, submitter_pledge_amount, admin_notes, hosting_monthly_goal')
@@ -27,6 +27,10 @@ export default async function AdminPage() {
       .select('id, title, slug, hosting_monthly_goal, hosting_collected, hosting_status')
       .eq('status', 'built')
       .order('created_at', { ascending: false }),
+    admin
+      .from('shipdit_supporters')
+      .select('id, email, amount, created_at, stripe_payment_intent_id')
+      .order('created_at', { ascending: false }),
   ])
 
   return (
@@ -35,6 +39,7 @@ export default async function AdminPage() {
       pledges={(pledgesRes.data ?? []) as PledgeRow[]}
       users={(usersRes.data ?? []) as UserRow[]}
       shippedIdeas={(shippedRes.data ?? []) as HostingRow[]}
+      supporters={(supportersRes.data ?? []) as SupporterRow[]}
     />
   )
 }

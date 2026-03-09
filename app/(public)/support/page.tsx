@@ -26,7 +26,6 @@ function SupportForm() {
   const elements = useElements()
   const router = useRouter()
 
-  const [mode, setMode] = useState<'one_time' | 'monthly'>('one_time')
   const [selectedPreset, setSelectedPreset] = useState<number | null>(2500)
   const [customAmount, setCustomAmount] = useState('')
   const [confirming, setConfirming] = useState(false)
@@ -65,7 +64,7 @@ function SupportForm() {
     const res = await fetch('/api/support', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ amount: effectiveAmount, mode }),
+      body: JSON.stringify({ amount: effectiveAmount }),
     })
 
     if (res.status === 401) {
@@ -109,9 +108,7 @@ function SupportForm() {
       >
         <div className="font-vt323 text-5xl" style={{ color: '#004000' }}>✓ Thank You!</div>
         <div className="text-sm" style={{ color: '#004000' }}>
-          {mode === 'monthly'
-            ? `Your ${formatDollars(effectiveAmount)}/month subscription is active. You can cancel anytime.`
-            : `${formatDollars(effectiveAmount)} received. Every bit helps keep Shipdit running.`}
+          {formatDollars(effectiveAmount)} received. Every bit helps keep Shipdit running.
         </div>
         <a
           href="/"
@@ -126,36 +123,10 @@ function SupportForm() {
 
   return (
     <div className="space-y-4">
-      {/* One-time / Monthly toggle */}
-      <div>
-        <div className="text-xs mb-2" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-          Contribution type:
-        </div>
-        <div style={{ display: 'flex', gap: 0 }}>
-          {(['one_time', 'monthly'] as const).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => setMode(m)}
-              className="win95-btn text-sm"
-              style={{
-                fontFamily: 'Share Tech Mono, monospace',
-                flex: 1,
-                ...(mode === m
-                  ? { background: '#000080', color: '#fff', borderColor: '#000040 #8080ff #8080ff #000040' }
-                  : {}),
-              }}
-            >
-              {m === 'one_time' ? 'One-time' : 'Monthly'}
-            </button>
-          ))}
-        </div>
-      </div>
-
       {/* Amount presets */}
       <div>
         <div className="text-xs mb-2" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-          Amount{mode === 'monthly' ? '/month' : ''}:
+          Amount:
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 4, marginBottom: 8 }}>
           {AMOUNT_PRESETS.map((cents) => (
@@ -225,14 +196,12 @@ function SupportForm() {
         {confirming
           ? '⌛ Processing...'
           : effectiveAmount >= 100
-            ? `SUPPORT SHIPDIT — ${formatDollars(effectiveAmount)}${mode === 'monthly' ? '/mo' : ''}`
+            ? `SUPPORT SHIPDIT — ${formatDollars(effectiveAmount)}`
             : 'SUPPORT SHIPDIT'}
       </button>
 
       <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
-        {mode === 'monthly'
-          ? 'Cancel anytime. Billed monthly via Stripe.'
-          : 'One-time charge. Processed securely via Stripe.'}
+        One-time charge. Processed securely via Stripe.
       </div>
     </div>
   )
