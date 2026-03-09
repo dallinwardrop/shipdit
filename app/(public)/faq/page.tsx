@@ -12,7 +12,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'How does the funding process work?',
-        a: 'Submit an idea and pledge what you\'re willing to put in. Your idea goes into review — typically approved within 2–3 hours. Once approved and live, the community can back it. When total pledges hit the build price within 72 hours, all cards are charged and I start building. If the goal isn\'t hit, every pledge is fully refunded.',
+        a: 'Submit an idea and pledge what you\'re willing to put in. Your idea goes into review — typically approved within 2–3 hours. Once approved and live, the community can back it. The build price is a minimum floor — when total pledges reach it within 72 hours, all cards are charged and I start building. Pledges beyond the minimum go toward hosting costs and keeping the app free long-term. If the minimum isn\'t hit, every pledge is fully refunded.',
       },
       {
         q: 'Who decides which ideas get built?',
@@ -29,7 +29,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'When does my card get charged?',
-        a: 'Your card is authorized (a hold is placed) when you pledge, but never charged until the funding goal is hit. If the goal isn\'t reached within 72 hours of going live, the hold is released and you owe nothing.',
+        a: 'Your card is authorized (a hold is placed) when you pledge, but never charged until the minimum funding goal is hit. If the minimum isn\'t reached within 72 hours of going live, the hold is released and you owe nothing. Pledging after the goal is already hit goes toward hosting costs and is charged immediately.',
       },
       {
         q: 'Is my payment information safe?',
@@ -37,7 +37,11 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
       },
       {
         q: 'How do refunds work?',
-        a: 'If an idea doesn\'t reach its funding goal within 72 hours of going live, all pledges are automatically refunded. No action needed on your part.',
+        a: 'If an idea doesn\'t reach its minimum funding goal within 72 hours of going live, all pledges are automatically refunded. No action needed on your part.',
+      },
+      {
+        q: 'Is the funding goal a hard cap?',
+        a: 'No — the build price is a minimum floor, not a ceiling. Pledging stays open even after the goal is hit. Any amount raised beyond the minimum goes directly toward hosting costs, keeping the app free and online for the community long-term.',
       },
       {
         q: 'What payment methods are accepted?',

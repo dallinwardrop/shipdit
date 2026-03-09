@@ -164,7 +164,7 @@ export default function SubmitPage() {
           </h1>
           <p className="text-xs mb-4" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
             Your idea enters a review queue. Once approved and priced, it goes live for community
-            funding. Your pledge is held — never charged unless the goal is hit within 72 hours of going live.
+            funding. Your pledge is held — never charged unless the minimum build goal is hit within 72 hours of going live.
           </p>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -354,7 +354,7 @@ export default function SubmitPage() {
                   </p>
                   <p>Basic apps (2–3 features) typically start at $1,000.</p>
                   <p>
-                    Your pledge is 100% refunded if the app doesn&apos;t reach its goal within 72 hours of going live.
+                    Your pledge is 100% refunded if the app doesn&apos;t reach its minimum build goal within 72 hours of going live.
                     You are <strong>never charged until the goal is hit.</strong>
                   </p>
                 </div>
@@ -408,7 +408,7 @@ export default function SubmitPage() {
         <div className="p-3 text-xs space-y-1" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
           <p>✓ Your card is authorized (held) — not charged — when you submit.</p>
           <p>✓ Funds are only captured when the full goal is reached.</p>
-          <p>✓ If the goal isn&apos;t hit within 72 hours of going live, your hold is fully released.</p>
+          <p>✓ If the minimum build goal isn&apos;t hit within 72 hours of going live, your hold is fully released.</p>
           <p>✓ Once built, the app is free for the entire community forever.</p>
           <p>🏆 <strong>Backer Perks:</strong> The #1 backer names the app or hides an easter egg. The #2 backer gets whichever perk #1 didn&apos;t choose.</p>
           <p style={{ marginTop: 6, paddingTop: 6, borderTop: '1px solid #c0c0c0' }}>

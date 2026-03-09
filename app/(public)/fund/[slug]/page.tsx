@@ -111,7 +111,7 @@ export default async function FundIdeaPage({
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const hours = hoursUntil(idea.funding_deadline)
   const features = (idea.features ?? []) as FeatureItem[]
-  const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live']
+  const PLEDGE_OPEN = ['submitted', 'under_review', 'awaiting_price', 'priced', 'live', 'funded', 'building', 'in_review', 'built']
   const isPledgeOpen = PLEDGE_OPEN.includes(idea.status)
   const isPreLive = ['submitted', 'under_review', 'awaiting_price'].includes(idea.status)
   const isBuilt = idea.status === 'built'
@@ -126,10 +126,10 @@ export default async function FundIdeaPage({
 
   return (
     <div className="max-w-5xl mx-auto">
-      <div className={isBuilt ? 'space-y-4' : 'flex flex-col md:flex-row gap-4 md:items-start'}>
+      <div className="flex flex-col md:flex-row gap-4 md:items-start">
 
         {/* ── Main / left column ── */}
-        <div className={`space-y-4 min-w-0${isBuilt ? '' : ' w-full md:w-[65%] md:flex-none'}`}>
+        <div className="space-y-4 min-w-0 w-full md:w-[65%] md:flex-none">
 
           {/* Header */}
           <div className="win95-window">
@@ -192,15 +192,17 @@ export default async function FundIdeaPage({
               ) : idea.build_price ? (
                 <div className="space-y-1">
                   <div className="win95-progress-track">
-                    <div className="win95-progress-fill" style={{ width: `${pct}%` }} />
+                    <div className="win95-progress-fill" style={{ width: `${Math.min(pct, 100)}%` }} />
                   </div>
                   <div className="flex justify-between text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
                     <span>
-                      {formatDollars(idea.amount_raised)} raised of {formatDollars(idea.build_price)} goal
+                      {formatDollars(idea.amount_raised)} raised of {formatDollars(idea.build_price)} minimum
                     </span>
-                    <span style={{ color: pct >= 100 ? 'green' : 'inherit' }}>
-                      {pct}% funded
-                    </span>
+                    {pct >= 100 ? (
+                      <span style={{ color: '#006600', fontWeight: 'bold' }}>Funded ✓ — extra pledges keep this app alive</span>
+                    ) : (
+                      <span>{pct}% funded</span>
+                    )}
                   </div>
                 </div>
               ) : null}
@@ -384,28 +386,10 @@ export default async function FundIdeaPage({
           )}
         </div>
 
-        {/* ── Right column (35%) — sticky — hidden for built apps ── */}
-        {!isBuilt && (
+        {/* ── Right column (35%) — sticky ── */}
+        {isPledgeOpen && (
           <div className="w-full md:w-[35%] md:flex-none min-w-0 md:sticky md:top-4 md:self-start">
-            {isPledgeOpen ? (
-              <PledgeBox appIdeaId={idea.id} slug={slug} fundingDeadline={idea.funding_deadline} />
-            ) : (
-              <div className="win95-window">
-                <div className="win95-title-bar">
-                  <span className="font-vt323 text-lg">Status</span>
-                </div>
-                <div className="p-3 text-sm space-y-2" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-                  {idea.status === 'funded'   && '✓ Fully funded! Build starting soon.'}
-                  {idea.status === 'building' && '🔨 Build in progress.'}
-                  {idea.status === 'in_review' && '🔍 Build complete — in final review.'}
-                  {idea.demo_url && (
-                    <a href={idea.demo_url} target="_blank" rel="noopener noreferrer" className="win95-btn inline-block mt-2 text-xs">
-                      View Demo →
-                    </a>
-                  )}
-                </div>
-              </div>
-            )}
+            <PledgeBox appIdeaId={idea.id} slug={slug} fundingDeadline={idea.funding_deadline} status={idea.status} />
           </div>
         )}
 

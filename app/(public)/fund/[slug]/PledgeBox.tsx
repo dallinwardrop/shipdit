@@ -95,10 +95,12 @@ export function PledgeBox({
   appIdeaId,
   slug,
   fundingDeadline,
+  status,
 }: {
   appIdeaId: string
   slug: string
   fundingDeadline?: string | null
+  status?: string
 }) {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -179,10 +181,24 @@ export function PledgeBox({
   const hours = hoursUntil(fundingDeadline ?? null)
   const isClosingSoon = hours !== null && hours <= 24 && hours >= 0
   const showUrgency = hours !== null && hours >= 0
+  const isAlreadyFunded = status === 'funded' || status === 'building' || status === 'in_review' || status === 'built'
 
   return (
     <div className="space-y-3">
-      {showUrgency && (
+      {isAlreadyFunded ? (
+        <div
+          className="win95-raised p-2 text-xs text-center"
+          style={{
+            fontFamily: 'Share Tech Mono, monospace',
+            background: '#f0fff0',
+            borderColor: '#008000 #004000 #004000 #008000',
+            color: '#004000',
+            fontWeight: 'bold',
+          }}
+        >
+          ✓ Build funded! Extra pledges go toward hosting.
+        </div>
+      ) : showUrgency && (
         <div
           className="win95-raised p-2 text-xs text-center"
           style={{
@@ -203,10 +219,17 @@ export function PledgeBox({
           <span className="font-vt323 text-xl">pledge_now.exe</span>
         </div>
         <div className="p-3 space-y-3">
-          <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-            Your card is <strong>authorized only</strong> — never charged until the funding goal
-            is hit. 100% refunded if not funded within 72 hours of going live.
-          </p>
+          {isAlreadyFunded ? (
+            <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+              This app is already funded and being built. Extra pledges go directly toward
+              <strong> hosting costs</strong> — keeping the app free for everyone, forever.
+            </p>
+          ) : (
+            <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+              Your card is <strong>authorized only</strong> — never charged until the minimum
+              funding goal is hit. 100% refunded if not funded within 72 hours of going live.
+            </p>
+          )}
 
           {/* Tier cards — hide once we have a clientSecret */}
           {!clientSecret && (
