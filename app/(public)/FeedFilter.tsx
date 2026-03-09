@@ -46,9 +46,11 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
     ? `#${String(idea.app_number).padStart(3, '0')}`
     : null
 
+  const isLive = idea.status === 'live'
+
   return (
-    <Link href={`/fund/${idea.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
-      <div className="win95-window cursor-pointer hover:brightness-95 transition-all" style={{ maxWidth: '100%' }}>
+    <div className="win95-window" style={{ maxWidth: '100%' }}>
+      <Link href={`/fund/${idea.slug}`} style={{ textDecoration: 'none', color: 'inherit', display: 'block' }} className="cursor-pointer hover:brightness-95">
 
         {/* Title bar */}
         <div className="win95-title-bar">
@@ -182,8 +184,29 @@ function IdeaCard({ idea }: { idea: IdeaWithTopDonor }) {
             )}
           </div>
         </div>
-      </div>
-    </Link>
+      </Link>
+
+      {/* Back This button — live ideas only */}
+      {isLive && (
+        <div className="px-3 pb-3">
+          <a
+            href={`/fund/${idea.slug}`}
+            className="win95-btn win95-btn-primary"
+            style={{
+              display: 'block',
+              width: '100%',
+              textAlign: 'center',
+              textDecoration: 'none',
+              padding: '6px',
+              fontFamily: 'VT323, monospace',
+              fontSize: '1rem',
+            }}
+          >
+            Back This →
+          </a>
+        </div>
+      )}
+    </div>
   )
 }
 
