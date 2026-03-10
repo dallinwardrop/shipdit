@@ -71,7 +71,6 @@ const PLEDGE_TIERS = [
 ]
 
 const SUPPORT_TIERS = [
-  { amountCents: 1000,  dollars: 10  },
   { amountCents: 2500,  dollars: 25  },
   { amountCents: 5000,  dollars: 50  },
   { amountCents: 10000, dollars: 100 },
@@ -321,7 +320,7 @@ function ShipditCard({
             <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000' }}>
               Support the platform
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 4 }}>
               {SUPPORT_TIERS.map(({ amountCents, dollars }) => (
                 <button
                   key={amountCents}
