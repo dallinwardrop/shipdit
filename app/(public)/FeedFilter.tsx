@@ -433,6 +433,8 @@ function IdeaCard({
   onClose: () => void
   onSuccess: () => void
 }) {
+  const [minimized, setMinimized] = useState(false)
+
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const hours = hoursUntil(idea.funding_deadline)
   const isCritical = hours !== null && hours >= 0 && hours < 6
@@ -454,13 +456,12 @@ function IdeaCard({
 
   return (
     <div className="win95-window" style={{ maxWidth: '100%', ...(isLive && isCritical ? { outline: '2px solid #cc0000' } : {}) }}>
-      <Link
-        href={`/fund/${idea.slug}`}
-        style={{ textDecoration: 'none', color: 'inherit', display: 'block', opacity: isExpired ? 0.8 : 1 }}
-        className={isExpired ? '' : 'cursor-pointer hover:brightness-95'}
-      >
-        {/* Title bar */}
-        <div className="win95-title-bar" style={isExpired ? { background: '#808080' } : {}}>
+      {/* Title bar — always visible */}
+      <div className="win95-title-bar" style={isExpired ? { background: '#808080' } : {}}>
+        <Link
+          href={`/fund/${idea.slug}`}
+          style={{ textDecoration: 'none', color: 'inherit', display: 'flex', alignItems: 'center', flex: 1, minWidth: 0 }}
+        >
           <span className="font-vt323 text-lg truncate flex-1">{idea.official_name ?? idea.title}</span>
           {idea.official_name && (
             <span
@@ -504,14 +505,32 @@ function IdeaCard({
               {badge.label}
             </span>
           )}
-          <div className="flex gap-1 flex-shrink-0">
-            {['_', '□', '✕'].map((ch) => (
-              <div key={ch} className="win95-btn" style={{ minWidth: 16, padding: '0 6px', fontSize: 10, lineHeight: '16px' }}>
-                {ch}
-              </div>
-            ))}
-          </div>
+        </Link>
+        <div className="flex gap-1 flex-shrink-0">
+          {[
+            { ch: '_', action: () => setMinimized(true)  },
+            { ch: '□', action: () => setMinimized(false) },
+            { ch: '✕', action: () => {}                  },
+          ].map(({ ch, action }) => (
+            <button
+              key={ch}
+              type="button"
+              onClick={(e) => { e.preventDefault(); action() }}
+              className="win95-btn"
+              style={{ minWidth: 16, padding: '0 6px', fontSize: 10, lineHeight: '16px', cursor: 'pointer' }}
+            >
+              {ch}
+            </button>
+          ))}
         </div>
+      </div>
+
+      {!minimized && (<>
+      <Link
+        href={`/fund/${idea.slug}`}
+        style={{ textDecoration: 'none', color: 'inherit', display: 'block', opacity: isExpired ? 0.8 : 1 }}
+        className={isExpired ? '' : 'cursor-pointer hover:brightness-95'}
+      >
 
         {/* Body */}
         <div className="p-3 space-y-2">
@@ -763,6 +782,7 @@ function IdeaCard({
           )}
         </div>
       )}
+      </>)}
     </div>
   )
 }
