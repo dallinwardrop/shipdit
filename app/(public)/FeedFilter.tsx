@@ -46,7 +46,7 @@ type FilterKey = 'all' | 'pending' | 'pledges' | 'funded' | 'built' | 'unfunded'
 
 const MAIN_FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = [
   { key: 'all',     label: 'All',               statuses: null },
-  { key: 'pending', label: 'Pending Review',     statuses: ['submitted', 'under_review', 'awaiting_price'] },
+  { key: 'pending', label: 'Pending Review',     statuses: ['submitted', 'under_review', 'awaiting_price', 'priced'] },
   { key: 'pledges', label: 'Accepting Pledges',  statuses: ['live'] },
   { key: 'funded',  label: 'Funded',             statuses: ['funded', 'building', 'in_review'] },
   { key: 'built',   label: 'Shipd',              statuses: ['built'] },
@@ -347,7 +347,7 @@ function IdeaCard({
   const isUrgent   = hours !== null && hours >= 0 && hours < 24
   const isWarning  = hours !== null && hours >= 0 && hours >= 24 && hours <= 48
   const badge = STATUS_BADGE[idea.status]
-  const isPreLive = ['submitted', 'under_review', 'awaiting_price'].includes(idea.status)
+  const isPreLive = ['submitted', 'under_review', 'awaiting_price', 'priced'].includes(idea.status)
   const appLabel = idea.app_number
     ? `#${String(idea.app_number).padStart(3, '0')}`
     : null
