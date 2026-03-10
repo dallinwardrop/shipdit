@@ -73,7 +73,9 @@ const PLEDGE_TIERS = [
 const SUPPORT_TIERS = [
   { amountCents: 1000,  dollars: 10  },
   { amountCents: 2500,  dollars: 25  },
+  { amountCents: 5000,  dollars: 50  },
   { amountCents: 10000, dollars: 100 },
+  { amountCents: 50000, dollars: 500 },
 ]
 
 const SHIPDIT_MONTHLY_GOAL_CENTS = 50000 // $500/month
@@ -182,6 +184,14 @@ function ShipditCard({
   onSuccess: () => void
 }) {
   const isPledging = openSupport !== null
+  const [customDollars, setCustomDollars] = useState('')
+
+  function handleCustomSupport() {
+    const val = parseFloat(customDollars)
+    if (!val || val < 1) return
+    onTierClick(Math.round(val * 100))
+    setCustomDollars('')
+  }
 
   return (
     <div
@@ -219,11 +229,6 @@ function ShipditCard({
             Built and maintained by the Shipdit team. Your support keeps the platform running and funds future development.
           </p>
 
-          {/* Goal */}
-          <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000' }}>
-            Platform support goal: ${(SHIPDIT_MONTHLY_GOAL_CENTS / 100).toLocaleString()}/month — View details →
-          </div>
-
           {/* Spotlight row */}
           <div className="win95-sunken p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000' }}>
             {spotlight ? (
@@ -236,7 +241,6 @@ function ShipditCard({
                     <span style={{ fontWeight: 'normal', opacity: 0.75 }}> on {spotlight.appTitle}</span>
                   )}
                 </div>
-                <div style={{ opacity: 0.65, marginTop: 2 }}>Most Shipdit backers contribute $25/month.</div>
               </>
             ) : (
               <span style={{ fontWeight: 'bold' }}>⭐ OFFICIAL SHIPDIT PROJECT</span>
@@ -317,7 +321,7 @@ function ShipditCard({
             <div className="text-xs text-center" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000' }}>
               Support the platform
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 4 }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 4 }}>
               {SUPPORT_TIERS.map(({ amountCents, dollars }) => (
                 <button
                   key={amountCents}
@@ -339,6 +343,36 @@ function ShipditCard({
                   ${dollars}
                 </button>
               ))}
+            </div>
+            <div style={{ display: 'flex', gap: 4 }}>
+              <input
+                type="number"
+                min="1"
+                placeholder="Custom $"
+                value={customDollars}
+                onChange={(e) => setCustomDollars(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCustomSupport()}
+                className="win95-input"
+                style={{ flex: 1, minWidth: 0, fontSize: 12, padding: '3px 6px' }}
+              />
+              <button
+                type="button"
+                onClick={handleCustomSupport}
+                disabled={!customDollars || parseFloat(customDollars) < 1}
+                className="win95-btn"
+                style={{
+                  fontFamily: 'VT323, monospace',
+                  fontSize: '1rem',
+                  padding: '2px 8px',
+                  background: '#5a3000',
+                  color: '#fff',
+                  borderColor: '#8b5e00 #2d1800 #2d1800 #8b5e00',
+                  cursor: 'pointer',
+                  flexShrink: 0,
+                }}
+              >
+                Support →
+              </button>
             </div>
           </>
         )}
