@@ -122,56 +122,6 @@ export default async function SharePage({
         </div>
       </div>
 
-      {/* Share copy */}
-      <div className="win95-window">
-        <div className="win95-title-bar">
-          <span className="font-vt323 text-xl">share_now.exe</span>
-        </div>
-        <div className="p-4 space-y-3">
-          {/* TEXT */}
-          <div className="win95-raised p-3 space-y-2">
-            <p
-              className="text-xs font-bold"
-              style={{ fontFamily: 'Share Tech Mono, monospace', color: '#000080' }}
-            >
-              📱 TEXT
-            </p>
-            <p className="text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-              {shareCopy.text}
-            </p>
-            <CopyButton text={shareCopy.text} label="Copy text" />
-          </div>
-
-          {/* LINKEDIN */}
-          <div className="win95-raised p-3 space-y-2">
-            <p
-              className="text-xs font-bold"
-              style={{ fontFamily: 'Share Tech Mono, monospace', color: '#000080' }}
-            >
-              💼 LINKEDIN
-            </p>
-            <p className="text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-              {shareCopy.linkedin}
-            </p>
-            <CopyButton text={shareCopy.linkedin} label="Copy post" />
-          </div>
-
-          {/* TWITTER / X */}
-          <div className="win95-raised p-3 space-y-2">
-            <p
-              className="text-xs font-bold"
-              style={{ fontFamily: 'Share Tech Mono, monospace', color: '#000080' }}
-            >
-              🐦 TWITTER / X
-            </p>
-            <p className="text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
-              {shareCopy.twitter}
-            </p>
-            <CopyButton text={shareCopy.twitter} label="Copy tweet" />
-          </div>
-        </div>
-      </div>
-
       {/* TikTok promo panel */}
       <div className="win95-window">
         <div className="win95-title-bar" style={{ background: '#400080' }}>
@@ -225,6 +175,56 @@ export default async function SharePage({
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Share copy */}
+      <div className="win95-window">
+        <div className="win95-title-bar">
+          <span className="font-vt323 text-xl">share_now.exe</span>
+        </div>
+        <div className="p-4 space-y-3">
+          {/* TEXT */}
+          <div className="win95-raised p-3 space-y-2">
+            <p
+              className="text-xs font-bold"
+              style={{ fontFamily: 'Share Tech Mono, monospace', color: '#000080' }}
+            >
+              📱 TEXT
+            </p>
+            <p className="text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+              {shareCopy.text}
+            </p>
+            <CopyButton text={shareCopy.text} label="Copy text" />
+          </div>
+
+          {/* LINKEDIN */}
+          <div className="win95-raised p-3 space-y-2">
+            <p
+              className="text-xs font-bold"
+              style={{ fontFamily: 'Share Tech Mono, monospace', color: '#000080' }}
+            >
+              💼 LINKEDIN
+            </p>
+            <p className="text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+              {shareCopy.linkedin}
+            </p>
+            <CopyButton text={shareCopy.linkedin} label="Copy post" />
+          </div>
+
+          {/* TWITTER / X */}
+          <div className="win95-raised p-3 space-y-2">
+            <p
+              className="text-xs font-bold"
+              style={{ fontFamily: 'Share Tech Mono, monospace', color: '#000080' }}
+            >
+              🐦 TWITTER / X
+            </p>
+            <p className="text-xs leading-relaxed" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
+              {shareCopy.twitter}
+            </p>
+            <CopyButton text={shareCopy.twitter} label="Copy tweet" />
           </div>
         </div>
       </div>
