@@ -167,7 +167,7 @@ export default async function FundingFeedPage() {
           {[
             { step: '1', label: 'Submit an idea + pledge', icon: '💡' },
             { step: '2', label: 'Community funds the goal', icon: '💰' },
-            { step: '3', label: 'I build the app', icon: '🔨' },
+            { step: '3', label: 'The Shipdit team builds it', icon: '🔨' },
             { step: '4', label: 'Use it free — kept alive by backers', icon: '🚀' },
           ].map(({ step, label, icon }) => (
             <div key={step} className="win95-raised p-2 space-y-1">

@@ -45,6 +45,7 @@ export default async function DonorsPage() {
           {!donors?.length ? (
             <p className="text-sm p-4 text-center">No donors yet. Be the first!</p>
           ) : (
+            <div className="overflow-x-auto">
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr className="win95-raised" style={{ textAlign: 'left' }}>
@@ -77,6 +78,7 @@ export default async function DonorsPage() {
                 ))}
               </tbody>
             </table>
+            </div>
           )}
         </div>
       </div>

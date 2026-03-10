@@ -247,8 +247,13 @@ function SubmitPageInner() {
     }
 
     const featuresWithText = form.features.filter((f) => f.text.trim().length > 0)
-    if (featuresWithText.length === 0) {
-      setError('Please add at least one feature.')
+    const mustHavesWithText = featuresWithText.filter((f) => f.priority === 'MUST HAVE')
+    if (mustHavesWithText.length === 0) {
+      setError('Please add at least 1 must-have feature.')
+      return
+    }
+    if (mustHavesWithText.length > 3) {
+      setError('Maximum 3 must-have features allowed.')
       return
     }
 
@@ -412,7 +417,7 @@ function SubmitPageInner() {
               <input
                 id="title"
                 type="text"
-                className="win95-input"
+                className="win95-input w-full"
                 placeholder="e.g. Tennis Score Tracker"
                 value={form.title}
                 onChange={(e) => updateField('title', e.target.value)}
@@ -428,7 +433,7 @@ function SubmitPageInner() {
               </FieldLabel>
               <textarea
                 id="goal_description"
-                className="win95-textarea"
+                className="win95-textarea w-full"
                 rows={4}
                 placeholder="Describe the problem clearly. What's broken or missing today? Who suffers because of it?"
                 value={form.goal_description}
@@ -441,51 +446,66 @@ function SubmitPageInner() {
             {/* 3. Features */}
             <FieldGroup>
               <FieldLabel htmlFor="features">3. Core features (in priority order)</FieldLabel>
-              <div className="space-y-2">
-                {form.features.map((feature, idx) => (
-                  <div key={idx} className="win95-raised p-2 flex gap-2 items-start">
-                    <select
-                      className="win95-select"
-                      style={{ width: 160, flexShrink: 0 }}
-                      value={feature.priority}
-                      onChange={(e) => updateFeature(idx, 'priority', e.target.value)}
-                    >
-                      {PRIORITIES.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </select>
-                    <input
-                      type="text"
-                      className="win95-input"
-                      placeholder="Describe this feature"
-                      value={feature.text}
-                      onChange={(e) => updateFeature(idx, 'text', e.target.value)}
-                      maxLength={200}
-                    />
-                    {form.features.length > 1 && (
+              {(() => {
+                const mustHaveCount = form.features.filter((f) => f.priority === 'MUST HAVE').length
+                return (
+                  <div className="space-y-2">
+                    {form.features.map((feature, idx) => (
+                      <div key={idx} className="win95-raised p-2 flex flex-wrap gap-2 items-start">
+                        <select
+                          className="win95-select"
+                          style={{ minWidth: 120, flexShrink: 0 }}
+                          value={feature.priority}
+                          onChange={(e) => updateFeature(idx, 'priority', e.target.value)}
+                        >
+                          {PRIORITIES.map((p) => (
+                            <option
+                              key={p}
+                              value={p}
+                              disabled={p === 'MUST HAVE' && feature.priority !== 'MUST HAVE' && mustHaveCount >= 3}
+                            >
+                              {p}
+                            </option>
+                          ))}
+                        </select>
+                        <input
+                          type="text"
+                          className="win95-input flex-1 min-w-0"
+                          placeholder="Describe this feature"
+                          value={feature.text}
+                          onChange={(e) => updateFeature(idx, 'text', e.target.value)}
+                          maxLength={200}
+                        />
+                        {form.features.length > 1 && (
+                          <button
+                            type="button"
+                            className="win95-btn text-xs flex-shrink-0"
+                            style={{ minWidth: 28, padding: '2px 6px', color: 'darkred' }}
+                            onClick={() => removeFeature(idx)}
+                            aria-label="Remove feature"
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    <div className="flex items-center gap-3">
                       <button
                         type="button"
-                        className="win95-btn text-xs flex-shrink-0"
-                        style={{ minWidth: 28, padding: '2px 6px', color: 'darkred' }}
-                        onClick={() => removeFeature(idx)}
-                        aria-label="Remove feature"
+                        className="win95-btn text-xs"
+                        onClick={addFeature}
                       >
-                        ✕
+                        + Add Feature
                       </button>
-                    )}
+                      {mustHaveCount >= 3 && (
+                        <span className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#804000' }}>
+                          Maximum 3 must-have features
+                        </span>
+                      )}
+                    </div>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  className="win95-btn text-xs"
-                  onClick={addFeature}
-                  disabled={form.features.length >= 20}
-                >
-                  + Add Feature
-                </button>
-              </div>
+                )
+              })()}
             </FieldGroup>
 
             {/* 4. Target user */}
@@ -494,7 +514,7 @@ function SubmitPageInner() {
               <input
                 id="target_user"
                 type="text"
-                className="win95-input"
+                className="win95-input w-full"
                 placeholder="e.g. Amateur tennis players who track matches in a notebook"
                 value={form.target_user}
                 onChange={(e) => updateField('target_user', e.target.value)}
@@ -511,7 +531,7 @@ function SubmitPageInner() {
               <input
                 id="similar_apps"
                 type="text"
-                className="win95-input"
+                className="win95-input w-full"
                 placeholder="e.g. Tennis Score by Apple — but too complex, no history"
                 value={form.similar_apps}
                 onChange={(e) => updateField('similar_apps', e.target.value)}
@@ -524,7 +544,7 @@ function SubmitPageInner() {
               <FieldLabel htmlFor="platform_preference">6. Platform preference</FieldLabel>
               <select
                 id="platform_preference"
-                className="win95-select"
+                className="win95-select w-full"
                 value={form.platform_preference}
                 onChange={(e) => updateField('platform_preference', e.target.value)}
               >
@@ -617,7 +637,7 @@ function SubmitPageInner() {
                   <input
                     id="submitter_pledge_amount"
                     type="number"
-                    className="win95-input"
+                    className="win95-input flex-1 min-w-0"
                     placeholder="500"
                     min="1"
                     value={form.submitter_pledge_amount}
@@ -652,7 +672,7 @@ function SubmitPageInner() {
             <div className="flex justify-end gap-2 pt-2">
               <button
                 type="submit"
-                className="win95-btn win95-btn-primary"
+                className="win95-btn win95-btn-primary w-full sm:w-auto"
                 disabled={submitting || authLoading}
                 style={{
                   minWidth: 140,

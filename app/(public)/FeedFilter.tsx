@@ -465,7 +465,7 @@ function IdeaCard({
           <span className="font-vt323 text-lg truncate flex-1">{idea.official_name ?? idea.title}</span>
           {idea.official_name && (
             <span
-              className="text-xs flex-shrink-0 mx-1 px-1"
+              className="hidden sm:inline text-xs flex-shrink-0 mx-1 px-1"
               style={{
                 fontFamily: 'Share Tech Mono, monospace',
                 color: '#004400',

@@ -47,6 +47,20 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       )
 
+    const mustHaves = (features ?? []).filter(
+      (f: FeatureItem) => f.priority === 'MUST HAVE' && f.text?.trim()
+    )
+    if (mustHaves.length < 1)
+      return NextResponse.json(
+        { error: 'At least 1 must-have feature is required.' },
+        { status: 400 }
+      )
+    if (mustHaves.length > 3)
+      return NextResponse.json(
+        { error: 'Maximum 3 must-have features allowed.' },
+        { status: 400 }
+      )
+
     const admin = createAdminClient()
     const userId = user.id
 

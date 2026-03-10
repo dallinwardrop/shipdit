@@ -243,11 +243,11 @@ export default async function SharePage({
             </div>
           )}
           {!['submitted', 'under_review', 'awaiting_price', 'priced'].includes(idea.status) && (
-            <div className="flex justify-between items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2">
               <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
                 Your idea is visible in the public funding feed.
               </p>
-              <Link href={`/fund/${idea.slug}`} className="win95-btn text-sm whitespace-nowrap">
+              <Link href={`/fund/${idea.slug}`} className="win95-btn text-sm whitespace-nowrap self-start sm:self-auto">
                 View your idea in the funding feed →
               </Link>
             </div>

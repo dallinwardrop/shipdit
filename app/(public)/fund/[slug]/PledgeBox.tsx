@@ -314,7 +314,7 @@ export function PledgeBox({
                 <input
                   type="number"
                   min="1"
-                  className="win95-input"
+                  className="win95-input flex-1 min-w-0"
                   placeholder="Other amount"
                   value={customDollars}
                   onChange={(e) => { setCustomDollars(e.target.value); setSelectedCents(null) }}
