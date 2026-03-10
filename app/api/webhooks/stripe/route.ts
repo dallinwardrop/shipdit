@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createAdminClient } from '@/lib/supabase/admin'
 import type Stripe from 'stripe'
-import { sendGoalHit, sendRefundIssued } from '@/lib/emails'
+import { sendGoalHit, sendRefundIssued, sendSupportThankYou } from '@/lib/emails'
 
 export const dynamic = 'force-dynamic'
 
@@ -126,6 +126,24 @@ export async function POST(request: NextRequest) {
               .from('app_ideas')
               .update({ hosting_collected: (idea.hosting_collected ?? 0) + pi.amount })
               .eq('id', appIdeaId)
+          }
+        }
+      } else if (pi.metadata?.type === 'support') {
+        // Mark supporter record as captured and send thank you email
+        await admin
+          .from('shipdit_supporters')
+          .update({ status: 'captured' })
+          .eq('stripe_payment_intent_id', pi.id)
+
+        const userId = pi.metadata.user_id
+        if (userId) {
+          const { data: supporter } = await admin
+            .from('users')
+            .select('email')
+            .eq('id', userId)
+            .single()
+          if (supporter?.email) {
+            sendSupportThankYou(supporter.email, { amount: pi.amount }).catch(console.error)
           }
         }
       } else {

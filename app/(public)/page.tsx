@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { FeedFilter, type IdeaWithTopDonor } from './FeedFilter'
+import { FeedFilter, type IdeaWithTopDonor, type SpotlightData } from './FeedFilter'
 
 async function getAllIdeas(): Promise<IdeaWithTopDonor[]> {
   const supabase = createAdminClient()
@@ -71,8 +71,65 @@ async function getAllIdeas(): Promise<IdeaWithTopDonor[]> {
   return enriched
 }
 
+async function getSpotlight(): Promise<SpotlightData | null> {
+  const supabase = createAdminClient()
+  const now = new Date()
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
+
+  // 1. Highest single shipdit_supporters contribution this month
+  const { data: topSupporter } = await supabase
+    .from('shipdit_supporters')
+    .select('email, amount')
+    .gte('created_at', startOfMonth)
+    .order('amount', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (topSupporter) {
+    // Try to resolve display name from users table by email
+    const { data: userRow } = await supabase
+      .from('users')
+      .select('full_name, username')
+      .eq('email', topSupporter.email)
+      .single()
+    const name =
+      (userRow?.full_name as string | null)?.split(' ')[0] ??
+      (userRow?.username as string | null) ??
+      topSupporter.email.split('@')[0]
+    return { label: '🏆 Top supporter this month:', name, amount: topSupporter.amount }
+  }
+
+  // 2. Fallback: highest pledge across all ideas in the last 7 days
+  const since7d = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: topPledge } = await supabase
+    .from('pledges')
+    .select('amount, anonymous, users(full_name, username), app_ideas(title)')
+    .in('status', ['held', 'captured'])
+    .eq('type', 'pledge')
+    .gte('created_at', since7d)
+    .order('amount', { ascending: false })
+    .limit(1)
+    .single()
+
+  if (topPledge) {
+    const user = (topPledge.users as unknown) as { full_name: string | null; username: string | null } | null
+    const idea = (topPledge.app_ideas as unknown) as { title: string } | null
+    const name = topPledge.anonymous
+      ? 'Anonymous'
+      : user?.full_name?.split(' ')[0] ?? user?.username ?? 'Anonymous'
+    return {
+      label: '🏆 Biggest backer this week:',
+      name,
+      amount: topPledge.amount,
+      appTitle: idea?.title ?? undefined,
+    }
+  }
+
+  return null
+}
+
 export default async function FundingFeedPage() {
-  const ideas = await getAllIdeas()
+  const [ideas, spotlight] = await Promise.all([getAllIdeas(), getSpotlight()])
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -123,7 +180,7 @@ export default async function FundingFeedPage() {
       </div>
 
       {/* Filter bar + cards */}
-      <FeedFilter ideas={ideas} />
+      <FeedFilter ideas={ideas} spotlight={spotlight} />
     </div>
   )
 }

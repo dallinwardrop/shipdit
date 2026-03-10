@@ -11,6 +11,13 @@ import type { Database } from '@/lib/supabase/types'
 type AppIdea = Database['public']['Tables']['app_ideas']['Row']
 export type IdeaWithTopDonor = AppIdea & { top_donor_name: string | null }
 
+export type SpotlightData = {
+  label: string
+  name: string
+  amount: number
+  appTitle?: string
+}
+
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
 
 const cardElementOptions = {
@@ -163,11 +170,13 @@ function InlinePledgeForm({
 
 function ShipditCard({
   openSupport,
+  spotlight,
   onTierClick,
   onClose,
   onSuccess,
 }: {
   openSupport: OpenSupport | null
+  spotlight: SpotlightData | null
   onTierClick: (amountCents: number) => void
   onClose: () => void
   onSuccess: () => void
@@ -215,9 +224,23 @@ function ShipditCard({
             Platform support goal: ${(SHIPDIT_MONTHLY_GOAL_CENTS / 100).toLocaleString()}/month — View details →
           </div>
 
-          {/* Stats row */}
-          <div className="win95-sunken p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000', fontWeight: 'bold' }}>
-            ⭐ OFFICIAL SHIPDIT PROJECT
+          {/* Spotlight row */}
+          <div className="win95-sunken p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#5a3000' }}>
+            {spotlight ? (
+              <>
+                <div style={{ fontWeight: 'bold' }}>
+                  {spotlight.label}{' '}
+                  <span style={{ color: '#3a1800' }}>{spotlight.name}</span>
+                  {' — '}{formatDollars(spotlight.amount)}
+                  {spotlight.appTitle && (
+                    <span style={{ fontWeight: 'normal', opacity: 0.75 }}> on {spotlight.appTitle}</span>
+                  )}
+                </div>
+                <div style={{ opacity: 0.65, marginTop: 2 }}>Most Shipdit backers contribute $25/month.</div>
+              </>
+            ) : (
+              <span style={{ fontWeight: 'bold' }}>⭐ OFFICIAL SHIPDIT PROJECT</span>
+            )}
           </div>
         </div>
       </Link>
@@ -712,7 +735,7 @@ function IdeaCard({
 
 // ── Filter bar + grid ─────────────────────────────────────────────────────────
 
-export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
+export function FeedFilter({ ideas, spotlight = null }: { ideas: IdeaWithTopDonor[]; spotlight?: SpotlightData | null }) {
   const router = useRouter()
   const [active, setActive] = useState<FilterKey>('pledges')
   const [search, setSearch] = useState('')
@@ -888,6 +911,7 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
             {active === 'pledges' && (
               <ShipditCard
                 openSupport={openSupport}
+                spotlight={spotlight}
                 onTierClick={startSupport}
                 onClose={() => setOpenSupport(null)}
                 onSuccess={handleSupportSuccess}

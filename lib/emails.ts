@@ -317,6 +317,21 @@ export async function sendNewIdeaAlert({
   }
 }
 
+export async function sendSupportThankYou(
+  to: string,
+  { amount }: { amount: number }
+): Promise<void> {
+  const html = layout(
+    `<h2 style="margin-top:0;color:#000080;">Thank you for supporting Shipdit 🙏</h2>
+     <p>You&rsquo;re a legend. Seriously.</p>
+     <p>Your <strong>${dollars(amount)}</strong> contribution goes directly toward keeping Shipdit running and funding future development.</p>
+     <p>The Shipdit team is grateful for your support — it means everything to have people like you in the community.</p>
+     <p>Keep an eye out for what gets built next: <a href="${APP_URL}" style="color:#000080;">${APP_URL}</a></p>
+     <p>— The Shipdit Team</p>`
+  )
+  await send(to, `Thank you for supporting Shipdit 🙏`, html)
+}
+
 export async function sendRefundIssued(
   to: string,
   { appTitle, amount }: { appTitle: string; amount: number }
