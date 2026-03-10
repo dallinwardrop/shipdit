@@ -30,10 +30,31 @@ export async function sendEmail(payload: EmailPayload): Promise<string | null> {
 
   const templates: Record<EmailType, { subject: string; html: string }> = {
     submission_confirmed: {
-      subject: `Your idea "${ideaTitle}" has been received — Shipdit`,
-      html: `<h1>We got it!</h1>
-<p>Thanks for submitting <strong>${ideaTitle}</strong>. We'll review it and reach out when it moves forward.</p>
-<p><a href="${APP_URL}/submit">Submit another idea</a></p>`,
+      subject: `Your idea is in — now get it funded 🚀`,
+      html: `<h2 style="margin-top:0;color:#000080;">Your idea is in — now get it funded 🚀</h2>
+<p>We got your idea — we'll review it shortly.</p>
+<p style="background:#fff8e1;border-left:4px solid #ff8800;padding:10px 14px;margin:20px 0;">
+  <strong>The faster you spread the word, the faster it gets funded.</strong> Ideas with early momentum get prioritized.
+</p>
+<p style="margin-bottom:6px;"><strong>Ready-made share message — copy and send to friends:</strong></p>
+<div style="background:#f5f5f5;border-left:4px solid #000080;padding:12px 16px;margin:0 0 20px;font-family:monospace;font-size:13px;line-height:1.6;">
+  I just submitted an app idea on Shipdit — if it gets funded, it gets built in 72 hours. Back it here: ${ideaUrl}
+</div>
+<p>
+  <a href="${APP_URL}/share/${ideaSlug}"
+     style="display:inline-block;background:#000080;color:#ffffff;padding:12px 24px;
+            text-decoration:none;font-weight:bold;font-family:monospace;font-size:14px;
+            border:2px solid #000040;">
+    Go to your share page &rarr;
+  </a>
+</p>
+<p style="margin-top:24px;"><strong>What happens next:</strong></p>
+<p style="font-family:monospace;font-size:13px;line-height:2.2;background:#f5f5f5;padding:10px 14px;">
+  &#9312; We review your idea &rarr; &#9313; It goes live for pledges &rarr; &#9314; Hit the minimum goal and it gets built in 72 hours
+</p>
+<p style="margin-top:24px;font-size:13px;">
+  <a href="${APP_URL}/submit" style="color:#000080;">Submit another idea</a>
+</p>`,
     },
     idea_approved: {
       subject: `"${ideaTitle}" has been approved — Shipdit`,
