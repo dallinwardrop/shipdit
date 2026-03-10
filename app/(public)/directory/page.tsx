@@ -7,7 +7,7 @@ export default async function DirectoryPage() {
 
   const { data: apps } = await supabase
     .from('live_apps')
-    .select('*, app_ideas(title, slug, goal_description, hosting_monthly_goal, hosting_collected, hosting_status, demo_url)')
+    .select('*, app_ideas(title, slug, goal_description, hosting_monthly_goal, hosting_collected, hosting_status, demo_url, official_name)')
     .eq('is_online', true)
     .order('is_featured', { ascending: false })
     .order('created_at', { ascending: false })
@@ -44,13 +44,15 @@ export default async function DirectoryPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
           {apps.map((app) => {
             const idea = (app.app_ideas as unknown) as
-              | { title: string; slug: string; goal_description: string; hosting_monthly_goal: number; hosting_collected: number; hosting_status: string; demo_url: string | null }
+              | { title: string; slug: string; goal_description: string; hosting_monthly_goal: number; hosting_collected: number; hosting_status: string; demo_url: string | null; official_name: string | null }
               | null
+            const displayName = idea?.official_name ?? app.official_name
+            const hasOfficialName = !!idea?.official_name
             const appUrl = idea?.demo_url ?? `https://${app.subdomain}.shipdit.co`
             return (
               <div key={app.id} className="win95-window">
                 <div className="win95-title-bar">
-                  <span className="font-vt323 text-lg">{app.official_name}</span>
+                  <span className="font-vt323 text-lg">{displayName}</span>
                   {app.is_featured && (
                     <span className="text-xs" style={{ color: '#ffff00' }}>
                       ★ FEATURED
@@ -58,6 +60,24 @@ export default async function DirectoryPage() {
                   )}
                 </div>
                 <div className="p-3 space-y-2">
+                  {hasOfficialName && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className="text-xs px-1"
+                        style={{
+                          fontFamily: 'Share Tech Mono, monospace',
+                          color: '#004400',
+                          background: '#c8ffc8',
+                          border: '1px solid #008000',
+                        }}
+                      >
+                        ✓ Named by the community
+                      </span>
+                      <span className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+                        working title: {idea?.title}
+                      </span>
+                    </div>
+                  )}
                   {idea && <p className="text-xs">{idea.goal_description}</p>}
 
                   {/* Hosting meter */}

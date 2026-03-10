@@ -44,7 +44,7 @@ export default async function HostingPage({ params }: { params: Promise<{ slug: 
 
   const { data: idea } = await admin
     .from('app_ideas')
-    .select('id, title, slug, goal_description, hosting_monthly_goal, hosting_collected, hosting_status')
+    .select('id, title, slug, goal_description, hosting_monthly_goal, hosting_collected, hosting_status, official_name')
     .eq('slug', slug)
     .eq('status', 'built')
     .single()
@@ -62,7 +62,8 @@ export default async function HostingPage({ params }: { params: Promise<{ slug: 
   const pct = goal > 0 ? progressPercent(collected, goal) : 0
   const isOffline = idea.hosting_status === 'offline'
   const isWarning = idea.hosting_status === 'warning'
-  const appName = liveApp?.official_name ?? idea.title
+  const appName = idea.official_name ?? liveApp?.official_name ?? idea.title
+  const hasOfficialName = !!idea.official_name
   const appUrl = liveApp ? `https://${liveApp.subdomain}.shipdit.co` : null
   const meterColor = pct >= 50 ? '#006600' : pct >= 25 ? '#886600' : '#cc0000'
 
@@ -104,6 +105,24 @@ export default async function HostingPage({ params }: { params: Promise<{ slug: 
           {/* App info */}
           <div className="space-y-2">
             <h1 className="font-vt323 text-4xl leading-tight" style={{ color: '#000080' }}>{appName}</h1>
+            {hasOfficialName && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className="text-xs px-1"
+                  style={{
+                    fontFamily: 'Share Tech Mono, monospace',
+                    color: '#004400',
+                    background: '#c8ffc8',
+                    border: '1px solid #008000',
+                  }}
+                >
+                  ✓ Named by the community
+                </span>
+                <span className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+                  working title: {idea.title}
+                </span>
+              </div>
+            )}
             {idea.goal_description && (
               <p className="text-sm leading-relaxed">{idea.goal_description}</p>
             )}

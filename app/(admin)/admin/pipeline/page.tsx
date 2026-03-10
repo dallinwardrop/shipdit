@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { OfficialNameEditor } from './OfficialNameEditor'
 
 export const dynamic = 'force-dynamic'
 import { formatDollars } from '@/lib/utils'
@@ -8,7 +9,7 @@ export default async function PipelinePage() {
 
   const { data: ideas } = await admin
     .from('app_ideas')
-    .select('id, title, slug, status, submitter_pledge_amount, amount_raised, build_price, created_at, submitter_id, users(email, full_name)')
+    .select('id, title, slug, status, submitter_pledge_amount, amount_raised, build_price, created_at, submitter_id, official_name, users(email, full_name)')
     .not('status', 'in', '("built","rejected","expired")')
     .order('created_at', { ascending: false })
 
@@ -34,6 +35,7 @@ export default async function PipelinePage() {
             <thead>
               <tr className="win95-raised">
                 <th className="p-2 text-left">Title</th>
+                <th className="p-2 text-left">Official Name</th>
                 <th className="p-2 text-left">Status</th>
                 <th className="p-2 text-left">Submitter</th>
                 <th className="p-2 text-right">Pledge</th>
@@ -51,6 +53,9 @@ export default async function PipelinePage() {
                       <a href={`/fund/${idea.slug}`} style={{ color: '#000080' }}>
                         {idea.title}
                       </a>
+                    </td>
+                    <td className="p-2">
+                      <OfficialNameEditor ideaId={idea.id} currentName={idea.official_name ?? null} />
                     </td>
                     <td className="p-2">
                       <span className="win95-raised px-1" style={{ fontSize: 10 }}>

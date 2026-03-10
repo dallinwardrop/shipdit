@@ -95,6 +95,7 @@ export type Database = {
           backer_count: number
           watcher_count: number
           funding_deadline: string | null
+          official_name: string | null
           admin_notes: string | null
           rejection_reason: string | null
           referral_code: string | null
@@ -130,6 +131,7 @@ export type Database = {
           backer_count?: number
           watcher_count?: number
           funding_deadline?: string | null
+          official_name?: string | null
           admin_notes?: string | null
           rejection_reason?: string | null
           referral_code?: string | null
@@ -164,6 +166,7 @@ export type Database = {
           backer_count?: number
           watcher_count?: number
           funding_deadline?: string | null
+          official_name?: string | null
           admin_notes?: string | null
           rejection_reason?: string | null
           referral_code?: string | null

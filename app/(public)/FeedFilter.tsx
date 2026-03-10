@@ -404,7 +404,21 @@ function IdeaCard({
       >
         {/* Title bar */}
         <div className="win95-title-bar" style={isExpired ? { background: '#808080' } : {}}>
-          <span className="font-vt323 text-lg truncate flex-1">{idea.title}</span>
+          <span className="font-vt323 text-lg truncate flex-1">{idea.official_name ?? idea.title}</span>
+          {idea.official_name && (
+            <span
+              className="text-xs flex-shrink-0 mx-1 px-1"
+              style={{
+                fontFamily: 'Share Tech Mono, monospace',
+                color: '#004400',
+                background: '#c8ffc8',
+                border: '1px solid #008000',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ✓ Named by the community
+            </span>
+          )}
           {appLabel && (
             <span
               className="text-xs flex-shrink-0 mx-1 px-1"
@@ -444,11 +458,15 @@ function IdeaCard({
 
         {/* Body */}
         <div className="p-3 space-y-2">
-          {isPreLive && (
+          {idea.official_name ? (
+            <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+              working title: {idea.title}
+            </div>
+          ) : isPreLive ? (
             <div className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
               working title
             </div>
-          )}
+          ) : null}
           <p className="text-sm leading-snug" style={{ color: '#000' }}>
             {truncate(idea.goal_description, 100)}
           </p>
@@ -711,7 +729,7 @@ export function FeedFilter({ ideas }: { ideas: IdeaWithTopDonor[] }) {
       const f = MAIN_FILTERS.find((f) => f.key === active)
       return f?.statuses?.includes(idea.status) ?? true
     })
-    .filter((idea) => !query || idea.title.toLowerCase().includes(query))
+    .filter((idea) => !query || idea.title.toLowerCase().includes(query) || (idea.official_name?.toLowerCase().includes(query) ?? false))
 
   async function startPledge(idea: IdeaWithTopDonor, amountCents: number) {
     if (openPledge !== null) return
