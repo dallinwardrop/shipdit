@@ -109,6 +109,33 @@ export default async function FundIdeaPage({
     { rank: 2, label: '#2 Backer', perk: 'Gets whichever perk #1 didn\'t choose', icon: '🥈' },
   ]
 
+  // Hosting contributors — only relevant for built apps, but query always runs (returns empty for non-built)
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: contribRows } = await supabase
+    .from('hosting_contributions')
+    .select('id, user_id, amount, created_at')
+    .eq('app_idea_id', idea.id)
+    .eq('status', 'captured')
+    .gte('created_at', thirtyDaysAgo)
+    .order('amount', { ascending: false })
+    .limit(10)
+
+  const contribUserIds = [...new Set((contribRows ?? []).filter((c) => c.user_id).map((c) => c.user_id!))]
+  const contribNameMap: Record<string, string> = {}
+  if (contribUserIds.length > 0) {
+    const { data: userRows } = await supabase
+      .from('users')
+      .select('id, full_name, email')
+      .in('id', contribUserIds)
+    for (const u of userRows ?? []) {
+      contribNameMap[u.id] = (u.full_name as string | null)?.split(' ')[0] ?? (u.email as string).split('@')[0]
+    }
+  }
+  const contributors = (contribRows ?? []).map((c) => ({
+    ...c,
+    displayName: c.user_id ? (contribNameMap[c.user_id] ?? 'Anonymous Backer') : 'Anonymous Backer',
+  }))
+
   const displayTitle = idea.official_name ?? idea.title
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const hours = hoursUntil(idea.funding_deadline)
@@ -347,6 +374,42 @@ export default async function FundIdeaPage({
                     Hosting goal not yet set.
                   </div>
                 )}
+
+                {/* Keeping it alive this month */}
+                <div className="win95-window">
+                  <div className="win95-title-bar">
+                    <span className="font-vt323 text-base">🏅 Keeping it alive this month</span>
+                  </div>
+                  <div className="p-2">
+                    {contributors.length === 0 ? (
+                      <p className="p-1 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+                        Be the first to help keep this app running this month!
+                      </p>
+                    ) : (
+                      <div className="space-y-1">
+                        {contributors.map((c) => {
+                          const days = Math.floor((Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24))
+                          const timeLabel = days === 0 ? 'today' : days === 1 ? '1 day ago' : `${days} days ago`
+                          return (
+                            <div
+                              key={c.id}
+                              className="win95-raised p-2 flex justify-between items-center gap-3 text-xs"
+                              style={{ fontFamily: 'Share Tech Mono, monospace' }}
+                            >
+                              <span className="truncate flex-1"><strong>{c.displayName}</strong></span>
+                              <span style={{ color: '#808080', flexShrink: 0 }}>{timeLabel}</span>
+                              <span style={{ color: '#000080', fontWeight: 'bold', flexShrink: 0 }}>{formatDollars(c.amount)}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+                  Your contribution keeps this app alive for the community.
+                </p>
 
                 <div className="flex gap-2 flex-wrap">
                   {idea.demo_url && (

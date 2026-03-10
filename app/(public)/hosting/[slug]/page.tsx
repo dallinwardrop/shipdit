@@ -58,6 +58,32 @@ export default async function HostingPage({ params }: { params: Promise<{ slug: 
     .eq('app_idea_id', idea.id)
     .single()
 
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: contribRows } = await admin
+    .from('hosting_contributions')
+    .select('id, user_id, amount, created_at')
+    .eq('app_idea_id', idea.id)
+    .eq('status', 'captured')
+    .gte('created_at', thirtyDaysAgo)
+    .order('amount', { ascending: false })
+    .limit(10)
+
+  const contribUserIds = [...new Set((contribRows ?? []).filter((c) => c.user_id).map((c) => c.user_id!))]
+  const contribNameMap: Record<string, string> = {}
+  if (contribUserIds.length > 0) {
+    const { data: userRows } = await admin
+      .from('users')
+      .select('id, full_name, email')
+      .in('id', contribUserIds)
+    for (const u of userRows ?? []) {
+      contribNameMap[u.id] = (u.full_name as string | null)?.split(' ')[0] ?? (u.email as string).split('@')[0]
+    }
+  }
+  const contributors = (contribRows ?? []).map((c) => ({
+    ...c,
+    displayName: c.user_id ? (contribNameMap[c.user_id] ?? 'Anonymous Backer') : 'Anonymous Backer',
+  }))
+
   const goal = idea.hosting_monthly_goal ?? 0
   const collected = idea.hosting_collected ?? 0
   const pct = goal > 0 ? progressPercent(collected, goal) : 0
@@ -83,7 +109,7 @@ export default async function HostingPage({ params }: { params: Promise<{ slug: 
 </div>`
 
   return (
-    <div className="max-w-2xl mx-auto">
+    <div className="max-w-2xl mx-auto space-y-4">
       <div className="win95-window">
 
         {/* Title bar */}
@@ -169,6 +195,11 @@ export default async function HostingPage({ params }: { params: Promise<{ slug: 
           {/* Divider */}
           <div style={{ borderTop: '2px groove #808080', margin: '0 -4px' }} />
 
+          {/* Subtle message above contribute form */}
+          <p className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
+            Your contribution keeps this app alive for the community.
+          </p>
+
           {/* Contribution form — no separate window chrome */}
           <HostingContribute appIdeaId={idea.id} slug={slug} appName={appName} />
 
@@ -177,6 +208,39 @@ export default async function HostingPage({ params }: { params: Promise<{ slug: 
 
         </div>
       </div>
+
+      {/* Keeping it alive this month */}
+      <div className="win95-window">
+        <div className="win95-title-bar">
+          <span className="font-vt323 text-lg">🏅 Keeping it alive this month</span>
+        </div>
+        <div className="p-2">
+          {contributors.length === 0 ? (
+            <p className="p-2 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+              Be the first to help keep this app running this month!
+            </p>
+          ) : (
+            <div className="space-y-1">
+              {contributors.map((c) => {
+                const days = Math.floor((Date.now() - new Date(c.created_at).getTime()) / (1000 * 60 * 60 * 24))
+                const timeLabel = days === 0 ? 'today' : days === 1 ? '1 day ago' : `${days} days ago`
+                return (
+                  <div
+                    key={c.id}
+                    className="win95-raised p-2 flex justify-between items-center gap-3 text-xs"
+                    style={{ fontFamily: 'Share Tech Mono, monospace' }}
+                  >
+                    <span className="truncate flex-1"><strong>{c.displayName}</strong></span>
+                    <span style={{ color: '#808080', flexShrink: 0 }}>{timeLabel}</span>
+                    <span style={{ color: '#000080', fontWeight: 'bold', flexShrink: 0 }}>{formatDollars(c.amount)}</span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </div>
+
     </div>
   )
 }
