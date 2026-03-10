@@ -207,7 +207,7 @@ function ShipditCard({
         {/* Body */}
         <div className="p-3 space-y-2">
           <p className="text-sm leading-snug" style={{ color: '#000' }}>
-            Built and maintained by one person. Your support keeps the platform running and funds future development.
+            Built and maintained by the Shipdit team. Your support keeps the platform running and funds future development.
           </p>
 
           {/* Goal */}

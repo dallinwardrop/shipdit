@@ -221,7 +221,7 @@ export default function SupportPage() {
               Support Shipdit
             </h1>
             <p className="mt-2 text-sm" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#404040' }}>
-              Shipdit is built and maintained by one person. Every contribution goes directly toward
+              Shipdit is built and maintained by the Shipdit team. Every contribution goes directly toward
               hosting, maintenance, and building new features for the community.
             </p>
           </div>
