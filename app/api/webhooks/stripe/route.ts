@@ -129,12 +129,7 @@ export async function POST(request: NextRequest) {
           }
         }
       } else if (pi.metadata?.type === 'support') {
-        // Mark supporter record as captured and send thank you email
-        await admin
-          .from('shipdit_supporters')
-          .update({ status: 'captured' })
-          .eq('stripe_payment_intent_id', pi.id)
-
+        // Send thank you email on confirmed support payment
         const userId = pi.metadata.user_id
         if (userId) {
           const { data: supporter } = await admin
