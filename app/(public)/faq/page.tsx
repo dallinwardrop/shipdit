@@ -8,7 +8,7 @@ const FAQ: { section: string; items: { q: string; a: string }[] }[] = [
     items: [
       {
         q: 'What is Shipdit?',
-        a: 'Shipdit is a community-funded app platform. Anyone can submit an app idea with a pledge. When the community funds the goal, I build it — and everyone gets it free, forever.',
+        a: 'Shipdit is a community-funded app platform. Anyone can submit an app idea with a pledge. When the community funds the goal, the Shipdit team builds it — and it&apos;s kept alive by backers, forever.',
       },
       {
         q: 'How does the funding process work?',

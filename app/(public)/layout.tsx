@@ -14,7 +14,7 @@ export const metadata: Metadata = {
     default: 'Shipdit — Community-Funded Apps',
     template: '%s — Shipdit',
   },
-  description: 'Pledge to fund app ideas. Hit the goal, I build it in 72 hours. No subscriptions. No ads. Just backers.',
+  description: 'Pledge to fund app ideas. Hit the goal, the Shipdit team builds it in 72 hours. No subscriptions. No ads. Just backers.',
   metadataBase: new URL(APP_URL),
   openGraph: {
     siteName: 'Shipdit',

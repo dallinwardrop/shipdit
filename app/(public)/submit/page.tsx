@@ -358,7 +358,7 @@ function SubmitPageInner() {
           </div>
           <div className="p-3 text-sm space-y-2" style={{ fontFamily: 'Share Tech Mono, monospace', background: '#fff8e8' }}>
             <p>Ideas are reviewed within <strong>2–3 hours</strong> of submission. Once approved and live, you have <strong>72 hours</strong> to hit the funding goal.</p>
-            <p>Share it everywhere. Make TikToks. If it funds, I build it. If not, no one gets charged.</p>
+            <p>Share it everywhere. Make TikToks. If it funds, the Shipdit team builds it. If not, no one gets charged.</p>
           </div>
         </div>
       </div>
@@ -673,7 +673,7 @@ function SubmitPageInner() {
         </div>
         <div className="p-3 text-sm space-y-2" style={{ fontFamily: 'Share Tech Mono, monospace', background: '#fff8e8' }}>
           <p>Ideas are reviewed within <strong>2–3 hours</strong> of submission. Once approved and live, you have <strong>72 hours</strong> to hit the funding goal.</p>
-          <p>Share it everywhere. Make TikToks. If it funds, I build it. If not, no one gets charged.</p>
+          <p>Share it everywhere. Make TikToks. If it funds, the Shipdit team builds it. If not, no one gets charged.</p>
         </div>
       </div>
 

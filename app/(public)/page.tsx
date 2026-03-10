@@ -87,7 +87,7 @@ export default async function FundingFeedPage() {
               FUND THE NEXT APP
             </h1>
             <p className="text-sm mt-1">
-              Pledge to fund ideas you want built. Reach the goal → I build it → everyone gets it free.
+              Pledge to fund ideas you want built. Reach the goal → the Shipdit team builds it → kept alive by backers.
             </p>
           </div>
           <div className="flex gap-2">
