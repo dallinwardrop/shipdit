@@ -31,7 +31,7 @@ const STATUS_BADGE: Record<string, { label: string; color: string; bg: string }>
   submitted:      { label: 'PENDING REVIEW',     color: '#404040', bg: '#d4d4d4' },
   under_review:   { label: 'PENDING REVIEW',     color: '#404040', bg: '#d4d4d4' },
   awaiting_price: { label: 'AWAITING PRICE',     color: '#664400', bg: '#fff0c0' },
-  priced:         { label: 'ACCEPTING PLEDGES',  color: '#003300', bg: '#c0ffc0' },
+  priced:         { label: 'PRICED',             color: '#664400', bg: '#fff0c0' },
   live:           { label: 'ACCEPTING PLEDGES',  color: '#003300', bg: '#c0ffc0' },
   funded:         { label: 'FUNDED',             color: '#000060', bg: '#c0c8ff' },
   building:       { label: 'BEING BUILT',        color: '#000060', bg: '#c0c8ff' },
@@ -47,7 +47,7 @@ type FilterKey = 'all' | 'pending' | 'pledges' | 'funded' | 'built' | 'unfunded'
 const MAIN_FILTERS: { key: FilterKey; label: string; statuses: string[] | null }[] = [
   { key: 'all',     label: 'All',               statuses: null },
   { key: 'pending', label: 'Pending Review',     statuses: ['submitted', 'under_review', 'awaiting_price'] },
-  { key: 'pledges', label: 'Accepting Pledges',  statuses: ['priced', 'live'] },
+  { key: 'pledges', label: 'Accepting Pledges',  statuses: ['live'] },
   { key: 'funded',  label: 'Funded',             statuses: ['funded', 'building', 'in_review'] },
   { key: 'built',   label: 'Shipd',              statuses: ['built'] },
 ]
