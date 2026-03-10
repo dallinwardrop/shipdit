@@ -17,7 +17,14 @@ export async function POST(request: NextRequest) {
     if (!idea_id) return NextResponse.json({ error: 'idea_id required.' }, { status: 400 })
 
     const now = new Date()
-    const deadline = new Date(now.getTime() + 72 * 60 * 60 * 1000)
+    // Add 72 hours, then round up to the :58:00 of the next clock hour.
+    // The hourly cron fires at :00, giving a 2-minute buffer after the deadline.
+    // e.g. approved at 2:15 PM → raw deadline 2:15 PM+72h → rounded to 3:58 PM+72h
+    const rawDeadline = new Date(now.getTime() + 72 * 60 * 60 * 1000)
+    const deadline = new Date(rawDeadline)
+    deadline.setMinutes(0, 0, 0)              // snap to the top of the current hour
+    deadline.setHours(deadline.getHours() + 1) // advance to the next hour
+    deadline.setMinutes(58)                    // set to :58:00
 
     const { error } = await admin
       .from('app_ideas')
