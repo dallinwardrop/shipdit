@@ -451,10 +451,10 @@ function SubmitPageInner() {
                 return (
                   <div className="space-y-2">
                     {form.features.map((feature, idx) => (
-                      <div key={idx} className="win95-raised p-2 flex flex-wrap gap-2 items-start">
+                      <div key={idx} className="win95-raised p-2 flex gap-2 items-start">
                         <select
                           className="win95-select"
-                          style={{ minWidth: 120, flexShrink: 0 }}
+                          style={{ width: 150, flexShrink: 0 }}
                           value={feature.priority}
                           onChange={(e) => updateFeature(idx, 'priority', e.target.value)}
                         >
@@ -468,12 +468,17 @@ function SubmitPageInner() {
                             </option>
                           ))}
                         </select>
-                        <input
-                          type="text"
+                        <textarea
                           className="win95-input flex-1 min-w-0"
                           placeholder="Describe this feature"
                           value={feature.text}
-                          onChange={(e) => updateFeature(idx, 'text', e.target.value)}
+                          rows={2}
+                          style={{ resize: 'none', overflow: 'hidden' }}
+                          onChange={(e) => {
+                            updateFeature(idx, 'text', e.target.value)
+                            e.target.style.height = 'auto'
+                            e.target.style.height = e.target.scrollHeight + 'px'
+                          }}
                           maxLength={200}
                         />
                         {form.features.length > 1 && (
