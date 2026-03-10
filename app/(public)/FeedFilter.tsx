@@ -618,6 +618,27 @@ function IdeaCard({
             )
           })()}
 
+          {/* Launch App button */}
+          {idea.status === 'built' && idea.demo_url && (
+            <a
+              href={idea.demo_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              className="win95-btn win95-btn-primary text-sm"
+              style={{
+                display: 'block',
+                textAlign: 'center',
+                textDecoration: 'none',
+                fontFamily: 'VT323, monospace',
+                fontSize: '1.1rem',
+                padding: '5px',
+              }}
+            >
+              🚀 Launch App
+            </a>
+          )}
+
           {/* Stats */}
           <div className="win95-sunken p-2 flex flex-wrap gap-3 text-xs" style={{ fontFamily: 'Share Tech Mono, monospace' }}>
             <span><span style={{ color: '#000080' }}>●</span> {idea.backer_count} backer{idea.backer_count !== 1 ? 's' : ''}</span>
