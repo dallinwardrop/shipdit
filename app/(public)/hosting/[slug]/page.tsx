@@ -14,25 +14,26 @@ export async function generateMetadata(
   const admin = createAdminClient()
   const { data: idea } = await admin
     .from('app_ideas')
-    .select('title')
+    .select('title, official_name')
     .eq('slug', slug)
     .eq('status', 'built')
     .single()
 
   if (!idea) return {}
 
-  const description = `Help keep ${idea.title} free for the community by contributing to monthly hosting costs.`
+  const displayTitle = idea.official_name ?? idea.title
+  const description = `Help keep ${displayTitle} free for the community by contributing to monthly hosting costs.`
   return {
-    title: `${idea.title} — Support Hosting on Shipdit`,
+    title: `${displayTitle} — Support Hosting on Shipdit`,
     description,
     openGraph: {
-      title: `${idea.title} — Support Hosting on Shipdit`,
+      title: `${displayTitle} — Support Hosting on Shipdit`,
       description,
       images: [{ url: '/og-default.png', width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${idea.title} — Support Hosting on Shipdit`,
+      title: `${displayTitle} — Support Hosting on Shipdit`,
       description,
     },
   }

@@ -15,24 +15,25 @@ export async function generateMetadata(
   const supabase = createAdminClient()
   const { data: idea } = await supabase
     .from('app_ideas')
-    .select('title, goal_description')
+    .select('title, goal_description, official_name')
     .eq('slug', slug)
     .single()
 
   if (!idea) return {}
 
+  const displayTitle = idea.official_name ?? idea.title
   const description = (idea.goal_description ?? '').slice(0, 160)
   return {
-    title: `${idea.title} — Fund This App on Shipdit`,
+    title: `${displayTitle} — Fund This App on Shipdit`,
     description,
     openGraph: {
-      title: `${idea.title} — Fund This App on Shipdit`,
+      title: `${displayTitle} — Fund This App on Shipdit`,
       description,
       images: [{ url: '/og-default.png', width: 1200, height: 630 }],
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${idea.title} — Fund This App on Shipdit`,
+      title: `${displayTitle} — Fund This App on Shipdit`,
       description,
     },
   }
@@ -108,6 +109,7 @@ export default async function FundIdeaPage({
     { rank: 2, label: '#2 Backer', perk: 'Gets whichever perk #1 didn\'t choose', icon: '🥈' },
   ]
 
+  const displayTitle = idea.official_name ?? idea.title
   const pct = idea.build_price ? progressPercent(idea.amount_raised, idea.build_price) : 0
   const hours = hoursUntil(idea.funding_deadline)
   const features = (idea.features ?? []) as FeatureItem[]
@@ -134,7 +136,7 @@ export default async function FundIdeaPage({
           {/* Header */}
           <div className="win95-window">
             <div className="win95-title-bar">
-              <span className="font-vt323 text-xl truncate flex-1">{idea.title}</span>
+              <span className="font-vt323 text-xl truncate flex-1">{displayTitle}</span>
               {appLabel && (
                 <span
                   className="text-xs flex-shrink-0 ml-2 px-1"
@@ -153,13 +155,30 @@ export default async function FundIdeaPage({
             <div className="p-4 space-y-4">
               <div>
                 <h1 className="font-vt323 text-5xl leading-tight" style={{ color: '#000080' }}>
-                  {idea.title}
+                  {displayTitle}
                 </h1>
-                {isPreLive && (
+                {idea.official_name ? (
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <span
+                      className="text-xs px-1"
+                      style={{
+                        fontFamily: 'Share Tech Mono, monospace',
+                        color: '#004400',
+                        background: '#c8ffc8',
+                        border: '1px solid #008000',
+                      }}
+                    >
+                      ✓ Named by the community
+                    </span>
+                    <span className="text-xs" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
+                      Working title: {idea.title}
+                    </span>
+                  </div>
+                ) : isPreLive ? (
                   <div className="text-xs mt-1" style={{ fontFamily: 'Share Tech Mono, monospace', color: '#808080' }}>
                     working title
                   </div>
-                )}
+                ) : null}
               </div>
 
               {/* Meta */}
