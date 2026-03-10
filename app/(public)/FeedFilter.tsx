@@ -324,6 +324,41 @@ function ShipditCard({
   )
 }
 
+// ── Live countdown (≤ 2h remaining) ──────────────────────────────────────────
+
+function LiveCountdown({ deadline }: { deadline: string }) {
+  const calcSeconds = () =>
+    Math.max(0, Math.floor((new Date(deadline).getTime() - Date.now()) / 1000))
+
+  const [secondsLeft, setSecondsLeft] = useState(calcSeconds)
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setSecondsLeft(Math.max(0, Math.floor((new Date(deadline).getTime() - Date.now()) / 1000)))
+    }, 1000)
+    return () => clearInterval(id)
+  }, [deadline])
+
+  if (secondsLeft <= 0) return <span>Expired</span>
+
+  const minutes = Math.floor(secondsLeft / 60)
+  const seconds = secondsLeft % 60
+
+  if (secondsLeft < 60) {
+    return (
+      <span style={{ color: 'darkred', fontWeight: 'bold' }}>
+        ⚠️ {seconds}s left
+      </span>
+    )
+  }
+
+  return (
+    <span style={{ color: 'darkred', fontWeight: 'bold' }}>
+      ⚠️ {minutes}m {seconds.toString().padStart(2, '0')}s left
+    </span>
+  )
+}
+
 // ── Card ──────────────────────────────────────────────────────────────────────
 
 function IdeaCard({
@@ -501,14 +536,16 @@ function IdeaCard({
                 {isBuilding ? `Building — ${formatTimeLeft(hours)}` : `Build starts in ${formatTimeLeft(hours)}`}
               </span>
             ) : hours !== null && (
-              <span style={{
-                color: (isCritical || isUrgent) ? 'darkred' : isWarning ? '#886600' : 'inherit',
-                fontWeight: (isCritical || isUrgent) ? 'bold' : 'inherit',
-              }}>
-                {hours > 0
-                  ? `${isCritical || isUrgent || isWarning ? '⚠️ ' : ''}${formatTimeLeft(hours)} left`
-                  : 'EXPIRED'}
-              </span>
+              hours > 0 && hours <= 2 && idea.funding_deadline
+                ? <LiveCountdown deadline={idea.funding_deadline} />
+                : <span style={{
+                    color: (isCritical || isUrgent) ? 'darkred' : isWarning ? '#886600' : 'inherit',
+                    fontWeight: (isCritical || isUrgent) ? 'bold' : 'inherit',
+                  }}>
+                    {hours > 0
+                      ? `${isCritical || isUrgent || isWarning ? '⚠️ ' : ''}${formatTimeLeft(hours)} left`
+                      : 'EXPIRED'}
+                  </span>
             )}
             {idea.top_donor_name && (
               <span className="ml-auto">Top: <strong>{idea.top_donor_name}</strong></span>
